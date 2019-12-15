@@ -116,8 +116,8 @@ namespace LevelGeneration
 
                     if (bCell != null)
                     {
-                        if (ModuleManager.Instance.modules[cell.possibleModulesIndices[0]].edgeConnections[0] !=
-                            ModuleManager.Instance.modules[bCell.possibleModulesIndices[0]].edgeConnections[2])
+                        if (ModuleManager.Instance.modules[cell.possibleModulesIndices[0]].faceConnections[0] !=
+                            ModuleManager.Instance.modules[bCell.possibleModulesIndices[0]].faceConnections[2])
                         {
                             matchesNeighbours = false;
                             Debug.LogWarning($"CheckGeneratedLevel | ({i}, {j}) not matching with ({i}, {j + 1})");
@@ -126,8 +126,8 @@ namespace LevelGeneration
 
                     if (rCell != null)
                     {
-                        if (ModuleManager.Instance.modules[cell.possibleModulesIndices[0]].edgeConnections[1] !=
-                            ModuleManager.Instance.modules[rCell.possibleModulesIndices[0]].edgeConnections[3])
+                        if (ModuleManager.Instance.modules[cell.possibleModulesIndices[0]].faceConnections[1] !=
+                            ModuleManager.Instance.modules[rCell.possibleModulesIndices[0]].faceConnections[3])
                         {
                             matchesNeighbours = false;
                             Debug.LogWarning($"CheckGeneratedLevel | ({i}, {j}) not matching with ({i + 1}, {j})");

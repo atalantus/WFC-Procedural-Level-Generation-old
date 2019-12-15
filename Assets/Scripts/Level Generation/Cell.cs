@@ -54,12 +54,12 @@ namespace LevelGeneration
         }
 
         /// <summary>
-        /// Filters a cell for a given edge filter
+        /// Filters a cell for a given face filter
         /// </summary>
-        /// <param name="edgeFilter">Edge filter</param>
-        public void FilterCell(EdgeFilter edgeFilter)
+        /// <param name="faceFilter">Face filter</param>
+        public void FilterCell(FaceFilter faceFilter)
         {
-            //Debug.Log($"FilterCell({edgeFilter.EdgeIndex}, {edgeFilter.FilterType.ToString()})", gameObject);
+            //Debug.Log($"FilterCell({faceFilter.FaceIndex}, {faceFilter.FilterType.ToString()})", gameObject);
 
             if (SolvedScore == 1) return;
 
@@ -69,7 +69,7 @@ namespace LevelGeneration
             for (int i = 0; i < possibleModulesIndices.Count; i++)
             {
                 var module = _moduleManager.modules[possibleModulesIndices[i]];
-                var isImpossible = module.CheckModule(edgeFilter);
+                var isImpossible = module.CheckModule(faceFilter);
 
                 if (isImpossible)
                 {
@@ -89,13 +89,13 @@ namespace LevelGeneration
         }
 
         /// <summary>
-        /// Checks if the removing module had the last edge type of any kind for this cell and if so populates the changes to the affected neighbour cell.
+        /// Checks if the removing module had the last face type of any kind for this cell and if so populates the changes to the affected neighbour cell.
         /// Than removes module from <see cref="possibleModulesIndices"/>
         /// </summary>
         /// <param name="moduleIndex">Index of the removing module in <see cref="ModuleManager.modules"/></param>
         public void RemoveModule(int moduleIndex)
         {
-            // Check module`s edge types
+            // Check module`s face types
             var module = _moduleManager.modules[moduleIndex];
 
             // Remove module from possibility space
@@ -108,29 +108,29 @@ namespace LevelGeneration
 
             for (int j = 0; j < 4; j++)
             {
-                // Only check if cell has a neighbour on this edge
+                // Only check if cell has a neighbour on this face
                 if (neighbourCells[j] == null) continue;
 
-                var edgeType = module.edgeConnections[j];
-                var lastEdgeType = true;
+                var faceType = module.faceConnections[j];
+                var lastFaceType = true;
 
-                // Search in other possible modules for the same edge type
+                // Search in other possible modules for the same face type
                 for (int i = 0; i < possibleModulesIndices.Count; i++)
                 {
-                    if (_moduleManager.modules[possibleModulesIndices[i]].edgeConnections[j] == edgeType)
+                    if (_moduleManager.modules[possibleModulesIndices[i]].faceConnections[j] == faceType)
                     {
-                        lastEdgeType = false;
+                        lastFaceType = false;
                         break;
                     }
                 }
 
-                if (lastEdgeType)
+                if (lastFaceType)
                 {
-                    //Debug.Log($"{gameObject.name} | Last edge({j}, {edgeType.ToString()})", gameObject);
+                    //Debug.Log($"{gameObject.name} | Last face({j}, {faceType.ToString()})", gameObject);
 
-                    // Populate edge changes to neighbour cell
-                    var edgeFilter = new EdgeFilter(j, edgeType);
-                    neighbourCells[j].FilterCell(edgeFilter);
+                    // Populate face changes to neighbour cell
+                    var faceFilter = new FaceFilter(j, faceType);
+                    neighbourCells[j].FilterCell(faceFilter);
                 }
             }
 
@@ -163,21 +163,21 @@ namespace LevelGeneration
             // Update item on the heap
             LevelGenerator.Instance.OrderedCells.UpdateItem(this);
 
-            var edgeTypes = (Module.EdgeConnectionTypes[]) Enum.GetValues(typeof(Module.EdgeConnectionTypes));
+            var totalFaceTypes = ModuleManager.Instance.moduleConnections.faceConnectionsMap.Count;
 
             // Propagate changes to neighbours
             for (int i = 0; i < 4; i++)
             {
                 if (neighbourCells[i] == null) continue;
 
-                for (int j = 0; j < edgeTypes.Length; j++)
+                for (int faceType = 0; faceType < totalFaceTypes; faceType++)
                 {
-                    if (edgeTypes[j] != module.edgeConnections[i])
+                    if (faceType != module.faceConnections[i])
                     {
-                        // This edge type was removed from this edge
-                        // Populate edge changes to neighbour cell
-                        var edgeFilter = new EdgeFilter(i, edgeTypes[j]);
-                        neighbourCells[i].FilterCell(edgeFilter);
+                        // This face type was removed from this face
+                        // Populate face changes to neighbour cell
+                        var faceFilter = new FaceFilter(i, faceType);
+                        neighbourCells[i].FilterCell(faceFilter);
                     }
                 }
             }

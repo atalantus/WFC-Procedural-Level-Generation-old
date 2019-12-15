@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace LevelGeneration
 {
@@ -9,61 +10,51 @@ namespace LevelGeneration
     public class Module : ScriptableObject
     {
         /// <summary>
-        /// Different edge connection types
-        /// </summary>
-        public enum EdgeConnectionTypes
-        {
-            NONE
-        }
-        
-        /// <summary>
         /// The module`s game object
         /// </summary>
         public GameObject moduleGO;
         
         /// <summary>
-        /// The module`s edge connections starting with the bottom one going counter clockwise (bottom, right, top, left)
+        /// The module`s face connections starting with the face facing behind (behind, over, right, front, under, left)
         /// </summary>
-        public EdgeConnectionTypes[] edgeConnections = new EdgeConnectionTypes[4];
+        public int[] faceConnections = new int[6];
 
         /// <summary>
-        /// Checks this module for a specific edge filter
+        /// Checks this module for a specific face filter
         /// </summary>
         /// <param name="filter">The filter</param>
-        /// <returns>Does this model depend on the given edge filter</returns>
-        public bool CheckModule(EdgeFilter filter)
+        /// <returns>Does this model depend on the given face filter</returns>
+        public bool CheckModule(FaceFilter filter)
         {
-            //Debug.Log($"Checking {moduleGO.name} for edge filter {filter.EdgeIndex}, {filter.FilterType}");
+            //Debug.Log($"Checking {moduleGO.name} for face filter {filter.FaceIndex}, {filter.FilterType}");
             
-            // Get receiving edge index of this module
-            var edge = filter.EdgeIndex + 2;
-            if (edge == 4) edge = 0;
-            else if (edge == 5) edge = 1;
-            
+            // Get receiving face index of this module
+            var face = (filter.FaceIndex + 3) % 6;
+
             // Check if module matches a given filter
-            return edgeConnections[edge] == filter.FilterType;
+            return faceConnections[face] == filter.FilterID;
         }
     }
 
     /// <summary>
-    /// Edge filter
+    /// Face filter
     /// </summary>
-    public struct EdgeFilter
+    public struct FaceFilter
     {
         /// <summary>
-        /// The edge`s index (See <see cref="Module.edgeConnections"/>)
+        /// The face`s index (See <see cref="Module.faceConnections"/>)
         /// </summary>
-        public int EdgeIndex;
+        public int FaceIndex;
         
         /// <summary>
-        /// The edge type that gets filtered out
+        /// The face type that gets filtered out
         /// </summary>
-        public Module.EdgeConnectionTypes FilterType;
+        public int FilterID;
 
-        public EdgeFilter(int edgeIndex, Module.EdgeConnectionTypes filterType)
+        public FaceFilter(int faceIndex, int filterId)
         {
-            EdgeIndex = edgeIndex;
-            FilterType = filterType;
+            FaceIndex = faceIndex;
+            FilterID = filterId;
         }
     }
 }

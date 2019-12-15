@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,8 +9,19 @@ namespace LevelGeneration
 {
     public class ModuleGeneration : EditorWindow
     {
+        public string folderPath = "Assets/WFC Modules";
         public GameObject[] modelSources;
-        private bool generating = false;
+        public bool addToExistingModules = true;
+
+        private string AbsoluteFolderPath =>
+            $"{Application.dataPath.Remove(Application.dataPath.Length - 7)}/{folderPath}";
+
+        private string RelativeMCPath => $"{folderPath}/Resources/Module Connections.asset";
+
+        private Action _generateModules;
+        private ModuleConnections _moduleConnections;
+        private bool _generating;
+        private int _i;
 
         [MenuItem("Level Generation/Generate Modules")]
         public static void ShowWindow()
@@ -18,6 +31,8 @@ namespace LevelGeneration
 
         private void OnGUI()
         {
+            #region Basic GUI
+
             var serialObj = new SerializedObject(this);
             var serialModels = serialObj.FindProperty("modelSources");
 
@@ -36,24 +51,51 @@ namespace LevelGeneration
 
             GUILayout.Space(20);
 
+            folderPath = EditorGUILayout.TextField("Destination Folder Path", folderPath);
+
+            GUILayout.Space(5);
+
+            addToExistingModules = EditorGUILayout.Toggle("Add to existing Modules", addToExistingModules);
+
+            GUILayout.Space(5);
+
             EditorGUILayout.PropertyField(serialModels, true);
 
             GUILayout.Space(25);
+
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
+            #endregion
+
             if (GUILayout.Button("Generate", GUILayout.Width(150), GUILayout.Height(25)))
             {
-                if (modelSources.Length == 0) return;
+                _generating = true;
 
-                Debug.Log("Generate Modules");
-                generating = true;
+                SetupGenerateModules();
             }
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
-            DisplayProgressBar();
+            if (_generating)
+            {
+                if (_i == modelSources.Length)
+                {
+                    // Finished generating modules
+                    _generating = false;
+                    _generateModules = null;
+                    EditorUtility.ClearProgressBar();
+
+                    // Write changes to disc
+                    AssetDatabase.SaveAssets();
+                }
+                else
+                {
+                    DisplayProgressBar();
+                    _generateModules();
+                }
+            }
 
             serialObj.ApplyModifiedProperties();
         }
@@ -65,19 +107,77 @@ namespace LevelGeneration
 
         private void DisplayProgressBar()
         {
-            if (generating)
+            if (EditorUtility.DisplayCancelableProgressBar("Generating WFC-Modules",
+                $"Generating from {modelSources[_i].name} ({_i}/{modelSources.Length})",
+                (float) _i / modelSources.Length))
             {
-                Debug.Log("Generating = true");
-                if (EditorUtility.DisplayCancelableProgressBar("Generating WFC-Modules",
-                    $"Generating from {modelSources.Length} ({0}/{modelSources.Length})", 0.45f))
-                {
-                    Debug.Log("Process canceled!");
-                    generating = false;
-                    Debug.Log("Generating = false");
-                }
+                _generating = false;
             }
-            else
-                EditorUtility.ClearProgressBar();
+        }
+
+        private void SetupGenerateModules()
+        {
+            if (modelSources.Length == 0) return;
+            try
+            {
+                // Clear asset directory
+                if (!addToExistingModules && Directory.Exists(AbsoluteFolderPath))
+                {
+                    // Remove all existing modules
+                    Directory.CreateDirectory(AbsoluteFolderPath).Delete(true);
+                }
+
+                Directory.CreateDirectory(AbsoluteFolderPath);
+
+                AssetDatabase.Refresh();
+
+                // Create Module Connections Asset
+                Directory.CreateDirectory(AbsoluteFolderPath + "/Resources");
+
+                if (AssetDatabase.LoadAssetAtPath<ModuleConnections>(RelativeMCPath) == null)
+                {
+                    // Create Module Connections Asset
+                    AssetDatabase.CreateAsset(CreateInstance<ModuleConnections>(), RelativeMCPath);
+                }
+
+                _moduleConnections = AssetDatabase.LoadAssetAtPath<ModuleConnections>(RelativeMCPath);
+
+                // Setup Generate Modules
+                _i = 0;
+                _generateModules = GenerateModule;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
+        }
+
+        private void GenerateModule()
+        {
+            try
+            {
+                var moduleAsset = CreateInstance<Module>();
+
+                AssetDatabase.CreateAsset(moduleAsset,
+                    $"{folderPath}/{modelSources[_i].name}.asset");
+
+                // TODO: Create hash key from vertices
+                if (!_moduleConnections.faceConnectionsMap.ContainsKey(modelSources[_i].name))
+                    _moduleConnections.faceConnectionsMap.Add(modelSources[_i].name, _i);
+
+                // TODO: Check for rotated versions and set asset properties
+
+                _i++;
+            }
+            catch (Exception e)
+            {
+                _generating = false;
+                _generateModules = null;
+
+                // Write changes to disc
+                AssetDatabase.SaveAssets();
+                Debug.LogError(e);
+            }
         }
     }
 }
