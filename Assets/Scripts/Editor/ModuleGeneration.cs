@@ -23,10 +23,23 @@ namespace LevelGeneration
         private bool _generating;
         private int _i;
 
+        private Vector2 scrollPos;
+
         [MenuItem("Level Generation/Generate Modules")]
         public static void ShowWindow()
         {
             GetWindow<ModuleGeneration>(false, "Generate Modules");
+        }
+
+        private void OnFocus()
+        {
+            SceneView.duringSceneGui -= OnSceneGUI;
+            SceneView.duringSceneGui += OnSceneGUI;
+        }
+
+        private void OnDestroy()
+        {
+            SceneView.duringSceneGui -= OnSceneGUI;
         }
 
         private void OnGUI()
@@ -99,6 +112,23 @@ namespace LevelGeneration
 
             serialObj.ApplyModifiedProperties();
         }
+
+        private void OnSceneGUI(SceneView sceneView)
+        {
+            Handles.BeginGUI();
+            GUILayout.BeginArea(new Rect(Screen.width - 160, Screen.height - 300, 150, 250), new GUIStyle(GUI.skin.box));
+            scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Width(150), GUILayout.Height(250));
+
+            for (int i = 0; i < 30; i++)
+            {
+                GUILayout.Toggle(false, i.ToString());
+            }
+            
+            GUILayout.EndScrollView();
+            GUILayout.EndArea();
+            Handles.EndGUI();
+        }
+
 
         private void OnInspectorUpdate()
         {

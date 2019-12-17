@@ -16,7 +16,6 @@ namespace LevelGeneration
 
             #region Scene UI
 
-            Handles.color = Color.white;
             Handles.BeginGUI();
             GUILayout.BeginArea(new Rect(10, 10, 150, 200), new GUIStyle(GUI.skin.box));
 
