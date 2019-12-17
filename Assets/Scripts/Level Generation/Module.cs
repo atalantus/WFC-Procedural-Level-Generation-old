@@ -15,7 +15,7 @@ namespace LevelGeneration
         public GameObject moduleGO;
         
         /// <summary>
-        /// The module`s face connections starting with the face facing behind (back, up, right, forward, down, left)
+        /// The module`s face connections starting with the face facing behind (forward, up, right, back, down, left)
         /// </summary>
         public int[] faceConnections = new int[6];
 

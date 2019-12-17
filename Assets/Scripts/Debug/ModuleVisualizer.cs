@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.PlayerLoop;
+using UnityEngine.Serialization;
 
 [ExecuteInEditMode]
 [RequireComponent(typeof(MeshFilter), typeof(Renderer))]
@@ -7,20 +11,23 @@ public class ModuleVisualizer : MonoBehaviour
 {
     private Mesh _modelMesh;
     private Renderer _renderer;
-    private int _selectedFaceMesh = 1;
+    [HideInInspector]
+    public bool showHandles = true;
+    [HideInInspector]
+    public int selectedFaceMesh = -1;
 
     /// <summary>
-    /// different face meshes (back, up, right, forward, down, left)
+    /// different face meshes (forward, up, right, back, down, left)
     /// </summary>
     private KeyValuePair<int, Mesh>[] _faceMeshes;
 
-    // (back, up, right, forward, down, left)
-    private static readonly Vector3[] FmNormals =
+    // (forward, up, right, back, down, left)
+    public static readonly Vector3[] FmNormals =
     {
-        Vector3.back, Vector3.up, Vector3.right, Vector3.forward, Vector3.down, Vector3.left
+        Vector3.forward, Vector3.up, Vector3.right, Vector3.back, Vector3.down, Vector3.left
     };
 
-    private Mesh ModelMesh
+    public Mesh ModelMesh
     {
         get
         {
@@ -29,7 +36,7 @@ public class ModuleVisualizer : MonoBehaviour
         }
     }
 
-    private Renderer Renderer
+    public Renderer Renderer
     {
         get
         {
@@ -40,28 +47,19 @@ public class ModuleVisualizer : MonoBehaviour
 
     private void Awake()
     {
+        showHandles = true;
+        selectedFaceMesh = -1;
+
         _modelMesh = GetComponent<MeshFilter>().sharedMesh;
-        GenerateFaceMeshes();
         _renderer = GetComponent<Renderer>();
+
+        GenerateFaceMeshes();
     }
 
     private void OnDrawGizmos()
     {
-        if (_selectedFaceMesh >= 0)
-            DrawFaceMesh(_selectedFaceMesh);
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        var bounds = Renderer.bounds;
-        _selectedFaceMesh = -1;
-
-        Gizmos.color = Color.magenta;
-        for (int i = 0; i < 6; i++)
-        {
-            Gizmos.DrawSphere(
-                transform.position + FmNormals[i] * bounds.extents[i % 3] + new Vector3(0, bounds.extents.y, 0), 0.75f);
-        }
+        if (selectedFaceMesh >= 0)
+            DrawFaceMesh(selectedFaceMesh);
     }
 
     private void DrawFaceMesh(int i)
@@ -69,7 +67,7 @@ public class ModuleVisualizer : MonoBehaviour
         if (_faceMeshes == null) GenerateFaceMeshes();
 
         Gizmos.color = Color.red;
-        Gizmos.DrawWireMesh(_faceMeshes[i].Value, transform.position, transform.rotation, Vector3.one);
+        Gizmos.DrawMesh(_faceMeshes[i].Value, transform.position, transform.rotation, Vector3.one);
     }
 
     private void GenerateFaceMeshes()
