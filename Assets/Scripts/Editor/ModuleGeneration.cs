@@ -9,17 +9,17 @@ namespace LevelGeneration
 {
     public class ModuleGeneration : EditorWindow
     {
-        public string folderPath = "Assets/WFC Modules";
+        public string folderPath = "Assets/Level Generation";
         public GameObject[] modelSources;
         public bool addToExistingModules = true;
+        private ModuleConnections ModuleConnections => ModuleConnections.Instance;
 
         private string AbsoluteFolderPath =>
             $"{Application.dataPath.Remove(Application.dataPath.Length - 7)}/{folderPath}";
 
-        private string RelativeMCPath => $"{folderPath}/Resources/Module Connections.asset";
+        private string RelativeMCPath => $"{folderPath}/Assets/Resources/Module Connections.asset";
 
         private Action _generateModules;
-        private ModuleConnections _moduleConnections;
         private bool _generating;
         private int _i;
 
@@ -93,7 +93,7 @@ namespace LevelGeneration
 
             if (_generating)
             {
-                if (_i == modelSources.Length)
+                if (modelSources == null || _i == modelSources.Length)
                 {
                     // Finished generating modules
                     _generating = false;
@@ -116,15 +116,28 @@ namespace LevelGeneration
         private void OnSceneGUI(SceneView sceneView)
         {
             Handles.BeginGUI();
-            GUILayout.BeginArea(new Rect(Screen.width - 160, Screen.height - 300, 150, 250), new GUIStyle(GUI.skin.box));
-            scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Width(150), GUILayout.Height(250));
+            GUILayout.BeginArea(new Rect(Screen.width - 160, Screen.height - 300, 150, 250),
+                new GUIStyle(GUI.skin.box));
 
-            for (int i = 0; i < 30; i++)
+            if (ModuleConnections != null)
             {
-                GUILayout.Toggle(false, i.ToString());
+                scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Width(140), GUILayout.Height(240));
+
+                foreach (var faceConnection in ModuleConnections.faceConnectionsMap)
+                {
+                    GUILayout.Toggle(false, $"{faceConnection.Value} ({faceConnection.Key})");
+                }
+
+                GUILayout.EndScrollView();
             }
-            
-            GUILayout.EndScrollView();
+            else
+            {
+                GUI.skin.label.wordWrap = true;
+                GUILayout.Label(
+                    "Make sure you have a ModuleConnections Asset storing the different face connections. " +
+                    "\nUse the \"Generate Modules\" editor window to automatically generate this asset.");
+            }
+
             GUILayout.EndArea();
             Handles.EndGUI();
         }
@@ -147,30 +160,41 @@ namespace LevelGeneration
 
         private void SetupGenerateModules()
         {
-            if (modelSources.Length == 0) return;
+            var absoluteAssetFolderPath = AbsoluteFolderPath + "/Assets";
+            var absolutePrefabFolderPath = AbsoluteFolderPath + "/Prefabs";
+
             try
             {
                 // Clear asset directory
-                if (!addToExistingModules && Directory.Exists(AbsoluteFolderPath))
+                if (!addToExistingModules && Directory.Exists(absoluteAssetFolderPath))
                 {
                     // Remove all existing modules
-                    Directory.CreateDirectory(AbsoluteFolderPath).Delete(true);
+                    Directory.CreateDirectory(absoluteAssetFolderPath).Delete(true);
                 }
 
-                Directory.CreateDirectory(AbsoluteFolderPath);
+                // Clear prefab directory
+                if (!addToExistingModules && Directory.Exists(absolutePrefabFolderPath))
+                {
+                    // Remove all existing prefabs
+                    Directory.CreateDirectory(absolutePrefabFolderPath).Delete(true);
+                }
+
+                // Make sure we have these directories
+                Directory.CreateDirectory(absoluteAssetFolderPath);
+                Directory.CreateDirectory(absoluteAssetFolderPath + "/Variants");
+                Directory.CreateDirectory(absolutePrefabFolderPath);
+                Directory.CreateDirectory(absolutePrefabFolderPath + "/Variants");
 
                 AssetDatabase.Refresh();
 
                 // Create Module Connections Asset
-                Directory.CreateDirectory(AbsoluteFolderPath + "/Resources");
+                Directory.CreateDirectory(absoluteAssetFolderPath + "/Resources");
 
                 if (AssetDatabase.LoadAssetAtPath<ModuleConnections>(RelativeMCPath) == null)
                 {
                     // Create Module Connections Asset
                     AssetDatabase.CreateAsset(CreateInstance<ModuleConnections>(), RelativeMCPath);
                 }
-
-                _moduleConnections = AssetDatabase.LoadAssetAtPath<ModuleConnections>(RelativeMCPath);
 
                 // Setup Generate Modules
                 _i = 0;
@@ -186,16 +210,35 @@ namespace LevelGeneration
         {
             try
             {
-                var moduleAsset = CreateInstance<Module>();
+                var rotation = Vector3.zero;
 
-                AssetDatabase.CreateAsset(moduleAsset,
-                    $"{folderPath}/{modelSources[_i].name}.asset");
+                for (int i = 0; i < 4; i++)
+                {
+                    var moduleName = rotation == Vector3.zero
+                        ? modelSources[_i].name
+                        : $"{modelSources[_i].name} ({rotation.y})";
+                    var variantPath = rotation == Vector3.zero ? "" : "Variants/";
 
-                // TODO: Create hash key from vertices
-                if (!_moduleConnections.faceConnectionsMap.ContainsKey(modelSources[_i].name))
-                    _moduleConnections.faceConnectionsMap.Add(modelSources[_i].name, _i);
+                    var moduleAsset = CreateInstance<Module>();
 
-                // TODO: Check for rotated versions and set asset properties
+                    // Create asset
+                    AssetDatabase.CreateAsset(moduleAsset,
+                        $"{folderPath}/Assets/{variantPath}{moduleName}.asset");
+
+                    // Create prefab
+                    // var instanceRoot = PrefabUtility.InstantiatePrefab(modelSources[_i]) as GameObject;
+                    // var prefabVariant = PrefabUtility.SaveAsPrefabAsset(instanceRoot,
+                    //     $"{folderPath}/Prefabs/{variantPath}{moduleName}.prefab");
+                    // prefabVariant.transform.rotation = Quaternion.Euler(rotation);
+                    //
+                    // moduleAsset.moduleGO = prefabVariant;
+
+                    // TODO: Create hash key from vertices
+                    if (!ModuleConnections.faceConnectionsMap.ContainsKey(modelSources[_i].name))
+                        ModuleConnections.faceConnectionsMap.Add(modelSources[_i].name, _i);
+
+                    rotation = new Vector3(0, rotation.y + 90, 0);
+                }
 
                 _i++;
             }
@@ -203,6 +246,7 @@ namespace LevelGeneration
             {
                 _generating = false;
                 _generateModules = null;
+                EditorUtility.ClearProgressBar();
 
                 // Write changes to disc
                 AssetDatabase.SaveAssets();
