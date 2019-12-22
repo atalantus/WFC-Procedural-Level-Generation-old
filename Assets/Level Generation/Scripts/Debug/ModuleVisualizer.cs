@@ -11,9 +11,7 @@ public class ModuleVisualizer : MonoBehaviour
 {
     private Mesh _modelMesh;
     private Renderer _renderer;
-    [HideInInspector]
     public bool showHandles = true;
-    [HideInInspector]
     public int selectedFaceMesh = -1;
 
     /// <summary>
@@ -67,7 +65,7 @@ public class ModuleVisualizer : MonoBehaviour
         if (_faceMeshes == null) GenerateFaceMeshes();
 
         Gizmos.color = Color.red;
-        Gizmos.DrawMesh(_faceMeshes[i].Value, transform.position, transform.rotation, Vector3.one);
+        Gizmos.DrawWireMesh(_faceMeshes[i].Value, transform.position, transform.rotation, Vector3.one);
     }
 
     private void GenerateFaceMeshes()

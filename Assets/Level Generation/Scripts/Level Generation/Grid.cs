@@ -15,7 +15,7 @@ namespace LevelGeneration
         /// <summary>
         /// Grid cell scales
         /// </summary>
-        public Vector3Int cellScale;
+        public Vector3Int cellScale = Vector3Int.one;
 
         /// <summary>
         /// Cell prefab
@@ -35,7 +35,7 @@ namespace LevelGeneration
         /// <summary>
         /// RNG seed
         /// </summary>
-        public int seed;
+        public int seed = -1;
 
         private void Awake()
         {

@@ -19,20 +19,12 @@ namespace LevelGeneration
         /// </summary>
         public List<Module> modules;
 
-        /// <summary>
-        /// The module connections
-        /// </summary>
-        public ModuleConnections moduleConnections;
-
         private void Awake()
         {
             if (Instance == null)
                 Instance = this;
             else if (Instance != this)
                 Destroy(gameObject);
-
-            if (moduleConnections == null)
-                moduleConnections = ModuleConnections.Instance;
         }
     }
 }

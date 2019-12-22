@@ -5,21 +5,20 @@ using UnityEngine.Serialization;
 
 namespace LevelGeneration
 {
-    [CreateAssetMenu(fileName = "Module Connections", menuName = "Map Generation/Module Connections")]
-    public class ModuleConnections : ScriptableObject
+    public class ModulesInfo : ScriptableObject
     {
-        private static ModuleConnections _instance;
+        private static ModulesInfo _instance;
 
-        public static ModuleConnections Instance
+        public static ModulesInfo Instance
         {
             get
             {
                 if (!_instance)
-                    _instance = Resources.FindObjectsOfTypeAll<ModuleConnections>().FirstOrDefault();
+                    _instance = Resources.FindObjectsOfTypeAll<ModulesInfo>().FirstOrDefault();
                 return _instance;
             }
         }
-
+        
         public Dictionary<string, int> faceConnectionsMap = new Dictionary<string, int>();
     }
 }

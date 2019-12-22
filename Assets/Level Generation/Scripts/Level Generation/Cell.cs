@@ -156,14 +156,14 @@ namespace LevelGeneration
         /// <param name="moduleIndex">The module to assign</param>
         public void SetSpecialModule(int moduleIndex)
         {
+            var totalFaceTypes = possibleModulesIndices.Count;
+
             possibleModulesIndices = new List<int> {moduleIndex};
 
             var module = ModuleManager.Instance.modules[moduleIndex];
 
             // Update item on the heap
             LevelGenerator.Instance.OrderedCells.UpdateItem(this);
-
-            var totalFaceTypes = ModuleManager.Instance.moduleConnections.faceConnectionsMap.Count;
 
             // Propagate changes to neighbours
             for (int i = 0; i < 4; i++)
