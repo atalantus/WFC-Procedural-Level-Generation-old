@@ -7,6 +7,8 @@ namespace LevelGeneration
     [CustomEditor(typeof(ModuleVisualizer))]
     class ButtonExampleEditor : Editor
     {
+        private readonly string[] _faceNames = {"Forward", "Up", "Right", "Back", "Down", "Left"};
+
         void OnSceneGUI()
         {
             var moduleVisualizer = (ModuleVisualizer) target;
@@ -23,22 +25,47 @@ namespace LevelGeneration
             {
                 GUILayout.Box("Select a face");
             }
-            
+
             if (GUILayout.Button("click me", GUILayout.Width(100)))
                 Debug.Log("u clicked me");
-            
+
             GUILayout.EndArea();
             Handles.EndGUI();
+
             #endregion
         }
 
         private void OnDisable()
         {
             var moduleVisualizer = (ModuleVisualizer) target;
-            
+
             // deselected object
             moduleVisualizer.selectedFaceMesh = -1;
             moduleVisualizer.showHandles = true;
+        }
+
+        public override void OnInspectorGUI()
+        {
+            var moduleVisualizer = (ModuleVisualizer) target;
+
+            GUILayout.Space(10);
+
+            GUILayout.Label($"{moduleVisualizer.faces.Length} Faces:", EditorStyles.boldLabel);
+            for (var i = 0; i < moduleVisualizer.faces.Length; i++)
+            {
+                var face = moduleVisualizer.faces[i];
+                GUILayout.BeginHorizontal();
+                GUILayout.Space(25);
+                GUILayout.Label($"{_faceNames[i]} ({face.Hash})");
+                GUILayout.EndHorizontal();
+            }
+
+            GUILayout.Space(10);
+
+            if (GUILayout.Button("Regenerate faces"))
+            {
+                moduleVisualizer.faces = Util.GetFaceMeshes(moduleVisualizer.ModelMesh);
+            }
         }
 
         private void ShowFaceHandles(ModuleVisualizer moduleVisualizer)

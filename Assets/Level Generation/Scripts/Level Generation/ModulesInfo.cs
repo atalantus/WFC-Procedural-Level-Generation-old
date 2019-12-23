@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -7,18 +8,30 @@ namespace LevelGeneration
 {
     public class ModulesInfo : ScriptableObject
     {
-        private static ModulesInfo _instance;
+        private int _counter = 0;
+        public Dictionary<int, int> generatedConnections = new Dictionary<int, int>();
 
-        public static ModulesInfo Instance
+        public void AddFace(bool isManual, int hash = 0)
         {
-            get
+            if (!isManual)
             {
-                if (!_instance)
-                    _instance = Resources.FindObjectsOfTypeAll<ModulesInfo>().FirstOrDefault();
-                return _instance;
+                if (generatedConnections.ContainsKey(hash))
+                    generatedConnections[hash]++;
+                else
+                    generatedConnections.Add(hash, 1);
+            }
+            else
+            {
+                while (generatedConnections.ContainsKey(_counter))
+                {
+                    _counter++;
+                    if (_counter == -1)
+                        throw new Exception("No more available Hashes in int range! " +
+                                            "This is most likely a bug.");
+                }
+
+                generatedConnections.Add(_counter, 1);
             }
         }
-        
-        public Dictionary<string, int> faceConnectionsMap = new Dictionary<string, int>();
     }
 }
