@@ -12,3 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17380f0747f346f7afdd0227d1b28eed, type: 3}
   m_Name: ModulesInfo
   m_EditorClassIdentifier: 
+  generatedConnections:
+    keys: 54697a6e
+    values: 2a000000

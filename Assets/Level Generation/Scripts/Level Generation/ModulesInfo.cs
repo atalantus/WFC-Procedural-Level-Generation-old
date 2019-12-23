@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -9,7 +10,7 @@ namespace LevelGeneration
     public class ModulesInfo : ScriptableObject
     {
         private int _counter = 0;
-        public Dictionary<int, int> generatedConnections = new Dictionary<int, int>();
+        public ConnectionsDictionary generatedConnections = new ConnectionsDictionary();
 
         public void AddFace(bool isManual, int hash = 0)
         {
@@ -32,6 +33,8 @@ namespace LevelGeneration
 
                 generatedConnections.Add(_counter, 1);
             }
+            
+            EditorUtility.SetDirty(this);
         }
     }
 }

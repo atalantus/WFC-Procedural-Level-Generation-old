@@ -5,6 +5,7 @@ using System.Threading;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
 namespace LevelGeneration
@@ -79,35 +80,6 @@ namespace LevelGeneration
             }
         }
 
-        private void OnSceneGUI(SceneView sceneView)
-        {
-            Handles.BeginGUI();
-            GUILayout.BeginArea(new Rect(Screen.width - 160, Screen.height - 300, 150, 250),
-                new GUIStyle(GUI.skin.box));
-
-            if (ModulesInfo != null)
-            {
-                scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Width(140), GUILayout.Height(240));
-
-                foreach (var faceConnection in ModulesInfo.generatedConnections)
-                {
-                    GUILayout.Toggle(false, $"{faceConnection.Key} ({faceConnection.Value})");
-                }
-
-                GUILayout.EndScrollView();
-            }
-            else
-            {
-                GUI.skin.label.wordWrap = true;
-                GUILayout.Label(
-                    "Make sure you have a ModuleConnections Asset storing the different face connections. " +
-                    "\nUse the \"Generate Modules\" editor window to automatically generate this asset.");
-            }
-
-            GUILayout.EndArea();
-            Handles.EndGUI();
-        }
-
         private void OnInspectorUpdate()
         {
             Repaint();
@@ -146,7 +118,7 @@ namespace LevelGeneration
                 if (modulesScene == null)
                 {
                     EditorUtility.DisplayDialog("No scene named \"Modules\" found at path!",
-                        $"You need to create a scene named \"Modules\" at \"Assets/Level Generation/\".", "Ok");
+                        "You need to create a scene named \"Modules\" at \"Assets/Level Generation/\".", "Ok");
 
                     StopModuleGeneration();
                     return;
@@ -154,6 +126,16 @@ namespace LevelGeneration
 
                 // Open Modules scene
                 EditorSceneManager.OpenScene("Assets/Level Generation/Modules.unity", OpenSceneMode.Single);
+                
+                // Check if Modules scene is dirty
+                // if (SceneManager.GetActiveScene().isDirty)
+                // {
+                //     EditorUtility.DisplayDialog("Modules scene has unsaved changes!",
+                //         "You need to save the scene before you can generate new Modules.", "Ok");
+                //
+                //     StopModuleGeneration();
+                //     return;
+                // }
 
                 // Refresh Asset Database
                 AssetDatabase.Refresh();
@@ -195,37 +177,7 @@ namespace LevelGeneration
                         {
                             ModulesInfo.AddFace(false, faces[j].Hash);
                         }
-                    }
-
-                    if (i == 1 && faces != null)
-                    {
-                        // check if 90° rotated version would different to original
-                        if (faces[0].GetHashCode() == faces[2].GetHashCode() &&
-                            faces[3].GetHashCode() == faces[5].GetHashCode()) continue;
-                    }
-
-                    if (i == 2 && faces != null)
-                    {
-                        // check if 180° rotated version would different to original
-                        if (faces[0].GetHashCode() == faces[3].GetHashCode() &&
-                            faces[2].GetHashCode() == faces[5].GetHashCode()) continue;
-                    }
-
-                    if (i == 3 && faces != null)
-                    {
-                        // check if 270° rotated version would different to original
-                        if (faces[0].GetHashCode() == faces[5].GetHashCode() &&
-                            faces[2].GetHashCode() == faces[3].GetHashCode()) continue;
-                    }
-
-                    var moduleAsset = CreateInstance<Module>();
-
-                    // Create asset
-                    AssetDatabase.CreateAsset(moduleAsset,
-                        $"{ModulesPath}/Assets/{variantPath}{moduleName}.asset");
-
-                    if (masterPrefab == null)
-                    {
+                        
                         // Create master prefab
                         masterPrefab = PrefabUtility.InstantiatePrefab(modelSources[_i]) as GameObject;
                         if (masterPrefab != null)
@@ -233,7 +185,30 @@ namespace LevelGeneration
                             masterPrefab.AddComponent<ModuleVisualizer>();
                             masterPrefab.GetComponent<ModuleVisualizer>().faces = faces;
                         }
+                        
+                        EditorUtility.SetDirty(masterPrefab);
+                    } else if (faces != null)
+                    {
+                        switch (i)
+                        {
+                            // check if 90° rotated version would differ to original
+                            case 1 when faces[0].GetHashCode() == faces[2].GetHashCode() &&
+                                        faces[3].GetHashCode() == faces[5].GetHashCode():
+                            // check if 180° rotated version would differ to original
+                            case 2 when faces[0].GetHashCode() == faces[3].GetHashCode() &&
+                                        faces[2].GetHashCode() == faces[5].GetHashCode():
+                            // check if 270° rotated version would differ to original
+                            case 3 when faces[0].GetHashCode() == faces[5].GetHashCode() &&
+                                        faces[2].GetHashCode() == faces[3].GetHashCode():
+                                continue;
+                        }
                     }
+
+                    var moduleAsset = CreateInstance<Module>();
+
+                    // Create asset
+                    AssetDatabase.CreateAsset(moduleAsset,
+                        $"{ModulesPath}/Assets/{variantPath}{moduleName}.asset");
 
                     // Create prefab variant
                     var prefabVariant = PrefabUtility.SaveAsPrefabAsset(masterPrefab,
@@ -255,6 +230,9 @@ namespace LevelGeneration
 
                         moduleAsset.faceConnections[j] = faces[n].Hash;
                     }
+                    
+                    // Mark asset as dirty
+                    EditorUtility.SetDirty(moduleAsset);
 
                     rotation = new Vector3(0, rotation.y + 90, 0);
                 }
@@ -280,6 +258,10 @@ namespace LevelGeneration
             EditorUtility.ClearProgressBar();
 
             // Write changes to disc
+            EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+            EditorSceneManager.SaveOpenScenes();
+            
+            AssetDatabase.Refresh();
             AssetDatabase.SaveAssets();
         }
 
@@ -329,6 +311,41 @@ namespace LevelGeneration
             GUILayout.EndHorizontal();
 
             serialObj.ApplyModifiedProperties();
+        }
+        
+        /// <summary>
+        /// Draw Editor Window's scene GUI
+        /// </summary>
+        /// <param name="sceneView"></param>
+        private void OnSceneGUI(SceneView sceneView)
+        {
+            Handles.BeginGUI();
+            GUILayout.BeginArea(new Rect(Screen.width - 160, Screen.height - 300, 150, 250),
+                new GUIStyle(GUI.skin.box));
+            
+            GUILayout.Label("Face Filters:", EditorStyles.boldLabel);
+
+            if (ModulesInfo != null)
+            {
+                scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Width(140), GUILayout.Height(240));
+
+                foreach (var faceConnection in ModulesInfo.generatedConnections)
+                {
+                    GUILayout.Toggle(false, $"{faceConnection.Key} ({faceConnection.Value})");
+                }
+
+                GUILayout.EndScrollView();
+            }
+            else
+            {
+                GUI.skin.label.wordWrap = true;
+                GUILayout.Label(
+                    "Make sure you have a ModuleConnections Asset storing the different face connections. " +
+                    "\nUse the \"Generate Modules\" editor window to automatically generate this asset.");
+            }
+
+            GUILayout.EndArea();
+            Handles.EndGUI();
         }
 
         /// <summary>
