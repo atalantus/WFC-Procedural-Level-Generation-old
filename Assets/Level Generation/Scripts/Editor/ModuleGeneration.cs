@@ -37,9 +37,13 @@ namespace LevelGeneration
                     AssetDatabase.CreateAsset(CreateInstance<ModulesInfo>(), $"{ModulesPath}/ModulesInfo.asset");
                 }
                 else
-                    return m;
+                {
+                    _modulesInfo = m;
+                    return _modulesInfo;
+                }
 
-                return AssetDatabase.LoadAssetAtPath<ModulesInfo>($"{ModulesPath}/ModulesInfo.asset");
+                _modulesInfo = AssetDatabase.LoadAssetAtPath<ModulesInfo>($"{ModulesPath}/ModulesInfo.asset");
+                return _modulesInfo;
             }
         }
 
@@ -126,7 +130,7 @@ namespace LevelGeneration
 
                 // Open Modules scene
                 EditorSceneManager.OpenScene("Assets/Level Generation/Modules.unity", OpenSceneMode.Single);
-                
+
                 // Check if Modules scene is dirty
                 // if (SceneManager.GetActiveScene().isDirty)
                 // {
@@ -160,6 +164,7 @@ namespace LevelGeneration
             {
                 var rotation = Vector3.zero;
                 GameObject masterPrefab = null;
+                ModuleVisualizer masterVisualizer = null;
                 ModuleVisualizer.ModuleFace[] faces = null;
 
                 for (int i = 0; i < 4; i++)
@@ -171,36 +176,46 @@ namespace LevelGeneration
 
                     if (i == 0)
                     {
-                        faces = Util.GetFaceMeshes(modelSources[_i].GetComponent<MeshFilter>().sharedMesh);
+                        faces = FaceMeshGeneration.GetFaceMeshes(modelSources[_i].GetComponent<MeshFilter>()
+                            .sharedMesh, modelSources[_i].transform.position, modelSources[_i].transform.localScale);
 
                         for (int j = 0; j < faces.Length; j++)
                         {
                             ModulesInfo.AddFace(false, faces[j].Hash);
                         }
-                        
+
                         // Create master prefab
                         masterPrefab = PrefabUtility.InstantiatePrefab(modelSources[_i]) as GameObject;
                         if (masterPrefab != null)
                         {
-                            masterPrefab.AddComponent<ModuleVisualizer>();
-                            masterPrefab.GetComponent<ModuleVisualizer>().faces = faces;
+                            masterVisualizer = masterPrefab.AddComponent<ModuleVisualizer>();
+                            masterVisualizer.faces = faces;
                         }
-                        
+
                         EditorUtility.SetDirty(masterPrefab);
-                    } else if (faces != null)
+                    }
+                    else if (faces != null)
                     {
-                        switch (i)
+                        if (i == 1 && faces[0].GetHashCode() == faces[2].GetHashCode() &&
+                            faces[3].GetHashCode() == faces[5].GetHashCode())
                         {
-                            // check if 90° rotated version would differ to original
-                            case 1 when faces[0].GetHashCode() == faces[2].GetHashCode() &&
-                                        faces[3].GetHashCode() == faces[5].GetHashCode():
-                            // check if 180° rotated version would differ to original
-                            case 2 when faces[0].GetHashCode() == faces[3].GetHashCode() &&
-                                        faces[2].GetHashCode() == faces[5].GetHashCode():
-                            // check if 270° rotated version would differ to original
-                            case 3 when faces[0].GetHashCode() == faces[5].GetHashCode() &&
-                                        faces[2].GetHashCode() == faces[3].GetHashCode():
-                                continue;
+                            // 90° rotated version would not differ to original
+                            rotation = new Vector3(0, rotation.y + 90, 0);
+                            continue;
+                        }
+
+                        if (i == 2 && faces[0].GetHashCode() == faces[3].GetHashCode() &&
+                            faces[2].GetHashCode() == faces[5].GetHashCode())
+                        {
+                            // 180° rotated version would not differ to original
+                            rotation = new Vector3(0, rotation.y + 90, 0);
+                            continue;
+                        }
+
+                        if (i == 3 && masterVisualizer.moduleAssets.Count <= 2)
+                        {
+                            // 270° rotated version would not differ 90° variant
+                            continue;
                         }
                     }
 
@@ -230,7 +245,9 @@ namespace LevelGeneration
 
                         moduleAsset.faceConnections[j] = faces[n].Hash;
                     }
-                    
+
+                    masterVisualizer.moduleAssets.Add(moduleAsset);
+
                     // Mark asset as dirty
                     EditorUtility.SetDirty(moduleAsset);
 
@@ -260,7 +277,7 @@ namespace LevelGeneration
             // Write changes to disc
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
             EditorSceneManager.SaveOpenScenes();
-            
+
             AssetDatabase.Refresh();
             AssetDatabase.SaveAssets();
         }
@@ -312,7 +329,7 @@ namespace LevelGeneration
 
             serialObj.ApplyModifiedProperties();
         }
-        
+
         /// <summary>
         /// Draw Editor Window's scene GUI
         /// </summary>
@@ -322,7 +339,7 @@ namespace LevelGeneration
             Handles.BeginGUI();
             GUILayout.BeginArea(new Rect(Screen.width - 160, Screen.height - 300, 150, 250),
                 new GUIStyle(GUI.skin.box));
-            
+
             GUILayout.Label("Face Filters:", EditorStyles.boldLabel);
 
             if (ModulesInfo != null)

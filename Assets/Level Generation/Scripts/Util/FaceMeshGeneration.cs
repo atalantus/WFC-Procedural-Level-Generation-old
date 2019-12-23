@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace LevelGeneration
 {
-    public static class Util
+    public class FaceMeshGeneration
     {
         public static readonly Vector3[] faceNormals =
         {
@@ -17,11 +17,14 @@ namespace LevelGeneration
         /// </summary>
         /// <param name="mesh">The mesh</param>
         /// <returns>The different face meshes (forward, up, right, back, down, left)</returns>
-        public static ModuleVisualizer.ModuleFace[] GetFaceMeshes(Mesh mesh)
+        public static ModuleVisualizer.ModuleFace[] GetFaceMeshes(Mesh mesh, Vector3 position, Vector3 localScale)
         {
+            var lossOfFractionThreshold = 0.0001f;
+
             var mVertices = mesh.vertices;
             var mTriangles = mesh.triangles;
             var mNormals = mesh.normals;
+            var mExtents = mesh.bounds.extents;
 
             var meshes = new Mesh[6];
             var faces = new ModuleVisualizer.ModuleFace[6];
@@ -50,12 +53,34 @@ namespace LevelGeneration
                 // TODO: Not dependent on meshes local rotation
                 var normals = new[] {mNormals[indices[0]], mNormals[indices[1]], mNormals[indices[2]]};
 
+                // skip triangles that don't lay on the mesh bounds
+                var triCenter = (vertices[0] + vertices[1] + vertices[2]) / 3;
+
+                // check if triangle is flat on face
+                if (triCenter.x < -lossOfFractionThreshold && triCenter.x > lossOfFractionThreshold &&
+                    triCenter.y < -lossOfFractionThreshold && triCenter.y > lossOfFractionThreshold &&
+                    triCenter.z < -lossOfFractionThreshold && triCenter.z > lossOfFractionThreshold) continue;
+
+                // check if triangle is at bounds
+                if (Mathf.Abs(triCenter.x) < mExtents.x - lossOfFractionThreshold &&
+                    Mathf.Abs(triCenter.x) > mExtents.x + lossOfFractionThreshold &&
+                    Mathf.Abs(triCenter.y) < mExtents.y - lossOfFractionThreshold &&
+                    Mathf.Abs(triCenter.y) > mExtents.y + lossOfFractionThreshold &&
+                    Mathf.Abs(triCenter.z) < mExtents.z - lossOfFractionThreshold &&
+                    Mathf.Abs(triCenter.z) > mExtents.z + lossOfFractionThreshold)
+                {
+                    Debug.Log("Triangle not on bounds! skip");
+                    continue;
+                }
+
+                Debug.Log(mExtents);
+
                 var faceNormal = (normals[0] + normals[1] + normals[2]) / 3;
 
                 // Sort triangle to right face
                 for (int j = 0; j < faceNormals.Length; j++)
                 {
-                    float angle = Vector3.Angle(faceNormals[j], faceNormal);
+                    var angle = Vector3.Angle(faceNormals[j], faceNormal);
 
                     if (angle <= 45)
                     {
@@ -96,7 +121,11 @@ namespace LevelGeneration
 
                 for (int j = 0; j < verticesCount; j++)
                 {
-                    vertices[j] = fmVertices[i].RemoveFirst().Key;
+                    var v = fmVertices[i].RemoveFirst().Key;
+                    v.x *= localScale.x;
+                    v.y *= localScale.y;
+                    v.z *= localScale.z;
+                    vertices[j] = v;
                 }
 
                 meshes[i].vertices = vertices;
@@ -118,7 +147,8 @@ namespace LevelGeneration
             foreach (var v in mesh.vertices)
             {
                 var dir = Vector3AlignAxis(v - center, meshAxis);
-                hash ^= GenerateVector3Hash(dir);
+                var h = GenerateVector3Hash(dir);
+                hash ^= h;
             }
 
             return hash;

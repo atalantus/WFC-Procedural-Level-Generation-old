@@ -64,7 +64,8 @@ namespace LevelGeneration
 
             if (GUILayout.Button("Regenerate faces"))
             {
-                moduleVisualizer.faces = Util.GetFaceMeshes(moduleVisualizer.ModelMesh);
+                moduleVisualizer.faces = FaceMeshGeneration.GetFaceMeshes(moduleVisualizer.ModelMesh,
+                    moduleVisualizer.transform.position, moduleVisualizer.transform.localScale);
             }
         }
 

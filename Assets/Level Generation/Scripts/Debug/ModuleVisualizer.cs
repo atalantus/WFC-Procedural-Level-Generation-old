@@ -6,80 +6,85 @@ using UnityEngine;
 using UnityEngine.Experimental.PlayerLoop;
 using UnityEngine.Serialization;
 
-[ExecuteInEditMode]
-[RequireComponent(typeof(MeshFilter), typeof(Renderer))]
-public class ModuleVisualizer : MonoBehaviour
+namespace LevelGeneration
 {
+    [ExecuteInEditMode]
+    [RequireComponent(typeof(MeshFilter), typeof(Renderer))]
+    public class ModuleVisualizer : MonoBehaviour
+    {
 #if UNITY_EDITOR
 
-    private Mesh _modelMesh;
-    private Renderer _renderer;
-    [HideInInspector] public bool showHandles = true;
-    [HideInInspector] public int selectedFaceMesh = -1;
+        private Mesh _modelMesh;
+        private Renderer _renderer;
+        [HideInInspector] public bool showHandles = true;
+        [HideInInspector] public int selectedFaceMesh = -1;
+        [HideInInspector] public List<Module> moduleAssets;
 
-    /// <summary>
-    /// different face meshes (forward, up, right, back, down, left)
-    /// </summary>
-    public ModuleFace[] faces;
+        /// <summary>
+        /// different face meshes (forward, up, right, back, down, left)
+        /// </summary>
+        public ModuleFace[] faces;
 
-    public Mesh ModelMesh
-    {
-        get
+        public Mesh ModelMesh
         {
-            if (_modelMesh == null) _modelMesh = GetComponent<MeshFilter>().sharedMesh;
-            return _modelMesh;
+            get
+            {
+                if (_modelMesh == null) _modelMesh = GetComponent<MeshFilter>().sharedMesh;
+                return _modelMesh;
+            }
         }
-    }
 
-    public Renderer Renderer
-    {
-        get
+        public Renderer Renderer
         {
-            if (_renderer == null) _renderer = GetComponent<Renderer>();
-            return _renderer;
+            get
+            {
+                if (_renderer == null) _renderer = GetComponent<Renderer>();
+                return _renderer;
+            }
         }
-    }
 
-    private void Awake()
-    {
-        showHandles = true;
-        selectedFaceMesh = -1;
+        private void Awake()
+        {
+            showHandles = true;
+            selectedFaceMesh = -1;
+            moduleAssets = new List<Module>();
 
-        _modelMesh = GetComponent<MeshFilter>().sharedMesh;
-        _renderer = GetComponent<Renderer>();
-    }
+            _modelMesh = GetComponent<MeshFilter>().sharedMesh;
+            _renderer = GetComponent<Renderer>();
+        }
 
-    private void OnDrawGizmos()
-    {
-        if (selectedFaceMesh >= 0)
-            DrawFaceMesh(selectedFaceMesh);
-    }
+        private void OnDrawGizmos()
+        {
+            if (selectedFaceMesh >= 0)
+                DrawFaceMesh(selectedFaceMesh);
+        }
 
-    private void DrawFaceMesh(int i)
-    {
-        if (faces == null || faces.Length < 6) return;
-        
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireMesh(faces[i].Mesh, transform.position, transform.rotation, transform.localScale);
-    }
+        private void DrawFaceMesh(int i)
+        {
+            if (faces == null || faces.Length < 6) return;
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireMesh(faces[i].Mesh, transform.position, transform.rotation, Vector3.one);
+        }
 
 #endif
 
-    [Serializable]
-    public struct ModuleFace
-    {
-        public readonly Mesh Mesh;
-        public readonly int Hash;
-
-        public ModuleFace(Mesh mesh, int hash)
+        [Serializable]
+        public struct ModuleFace
         {
-            Mesh = mesh;
-            Hash = hash;
-        }
+            public readonly Mesh Mesh;
+            public readonly int Hash;
 
-        public override int GetHashCode()
-        {
-            return Hash;
+            public ModuleFace(Mesh mesh, int hash)
+            {
+                Mesh = mesh;
+                Hash = hash;
+            }
+
+            public override int GetHashCode()
+            {
+                return Hash;
+            }
         }
     }
 }
