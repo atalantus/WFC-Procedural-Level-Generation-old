@@ -19,15 +19,28 @@ namespace LevelGeneration
             #region Scene UI
 
             Handles.BeginGUI();
-            GUILayout.BeginArea(new Rect(10, 10, 150, 200), new GUIStyle(GUI.skin.box));
+            GUILayout.BeginArea(new Rect(10, 10, 185, 95), new GUIStyle(GUI.skin.box));
 
             if (moduleVisualizer.showHandles)
             {
-                GUILayout.Box("Select a face");
+                GUILayout.Label("Select a face", EditorStyles.boldLabel);
             }
+            else
+            {
+                EditorStyles.label.wordWrap = true;
+                GUILayout.Label(
+                    $"Selected face: {_faceNames[moduleVisualizer.selectedFaceMesh]} ({moduleVisualizer.faces[moduleVisualizer.selectedFaceMesh].hash})",
+                    EditorStyles.boldLabel);
 
-            if (GUILayout.Button("click me", GUILayout.Width(100)))
-                Debug.Log("u clicked me");
+                if (GUILayout.Button("Set adjacent to nothing", GUILayout.Width(175)))
+                    Debug.Log("adjacent to nothing");
+
+                if (GUILayout.Button("Set adjacent to everything", GUILayout.Width(175)))
+                    Debug.Log("adjacent to everything");
+
+                if (GUILayout.Button("Set to new adjacency id", GUILayout.Width(175)))
+                    Debug.Log("new adjacency id");
+            }
 
             GUILayout.EndArea();
             Handles.EndGUI();
@@ -65,7 +78,8 @@ namespace LevelGeneration
             if (GUILayout.Button("Regenerate faces"))
             {
                 moduleVisualizer.faces =
-                    MeshGeneration.GetFaceMeshes(moduleVisualizer.ModelMesh, moduleVisualizer.GetComponentInChildren<MeshFilter>(true).transform);
+                    MeshGeneration.GetFaceMeshes(moduleVisualizer.ModelMesh,
+                        moduleVisualizer.GetComponentInChildren<MeshFilter>(true).transform);
             }
         }
 

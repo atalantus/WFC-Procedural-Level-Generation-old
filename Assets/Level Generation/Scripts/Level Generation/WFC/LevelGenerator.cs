@@ -151,7 +151,7 @@ namespace LevelGeneration
                 {
                     var cell = orderedCells.GetFirst();
 
-                    if (cell.SolvedScore == 1)
+                    if (cell.SolvedScore <= 1)
                     {
                         orderedCells.RemoveFirst();
                     }
@@ -218,30 +218,36 @@ namespace LevelGeneration
                 var rCell = cell.neighbourCells[2];
 
                 if (fCell != null)
-                    if (modules[cell.possibleModulesIndices[0]].faceConnections[0] !=
-                        modules[fCell.possibleModulesIndices[0]].faceConnections[3])
+                    if (modules[cell.possibleModulesIndices[0]].faceConnections[0] != 1)
                     {
-                        isValid = false;
-                        Debug.LogError(string.Format(debugStr + " ({0}, {1}, {3})</color>", x, y, z, z + 1));
+                        if (modules[cell.possibleModulesIndices[0]].faceConnections[0] == 0 ||
+                            modules[cell.possibleModulesIndices[0]].faceConnections[0] !=
+                            modules[fCell.possibleModulesIndices[0]].faceConnections[3])
+                        {
+                            isValid = false;
+                            Debug.LogError(string.Format(debugStr + " ({0}, {1}, {3})</color>", x, y, z, z + 1));
+                        }
                     }
-
 
                 if (uCell != null)
-                    if (modules[cell.possibleModulesIndices[0]].faceConnections[1] !=
-                        modules[uCell.possibleModulesIndices[0]].faceConnections[4])
-                    {
-                        isValid = false;
-                        Debug.LogError(string.Format(debugStr + " ({0}, {3}, {2})</color>", x, y, z, y + 1));
-                    }
-
+                    if (modules[cell.possibleModulesIndices[0]].faceConnections[1] != 1)
+                        if (modules[cell.possibleModulesIndices[0]].faceConnections[1] == 0 ||
+                            modules[cell.possibleModulesIndices[0]].faceConnections[1] !=
+                            modules[uCell.possibleModulesIndices[0]].faceConnections[4])
+                        {
+                            isValid = false;
+                            Debug.LogError(string.Format(debugStr + " ({0}, {3}, {2})</color>", x, y, z, y + 1));
+                        }
 
                 if (rCell != null)
-                    if (modules[cell.possibleModulesIndices[0]].faceConnections[2] !=
-                        modules[rCell.possibleModulesIndices[0]].faceConnections[5])
-                    {
-                        isValid = false;
-                        Debug.LogError(string.Format(debugStr + " ({3}, {1}, {2})</color>", x, y, z, x + 1));
-                    }
+                    if (modules[cell.possibleModulesIndices[0]].faceConnections[2] != 1)
+                        if (modules[cell.possibleModulesIndices[0]].faceConnections[2] == 0 ||
+                            modules[cell.possibleModulesIndices[0]].faceConnections[2] !=
+                            modules[rCell.possibleModulesIndices[0]].faceConnections[5])
+                        {
+                            isValid = false;
+                            Debug.LogError(string.Format(debugStr + " ({3}, {1}, {2})</color>", x, y, z, x + 1));
+                        }
             }
 
             return isValid;

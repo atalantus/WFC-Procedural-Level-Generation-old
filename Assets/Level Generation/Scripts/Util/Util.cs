@@ -31,10 +31,5 @@ namespace LevelGeneration
                     break;
             }
         }
-
-        public static void test()
-        {
-            var s = "dffdff {0} dfdf";
-        }
     }
 }
