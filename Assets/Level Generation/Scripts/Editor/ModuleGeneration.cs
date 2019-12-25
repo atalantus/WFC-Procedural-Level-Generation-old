@@ -166,6 +166,7 @@ namespace LevelGeneration
                 GameObject masterPrefab = null;
                 ModuleVisualizer masterVisualizer = null;
                 ModuleVisualizer.ModuleFace[] faces = null;
+                int[] meshpartHashes = null;
 
                 for (int i = 0; i < 4; i++)
                 {
@@ -176,8 +177,10 @@ namespace LevelGeneration
 
                     if (i == 0)
                     {
-                        faces = FaceMeshGeneration.GetFaceMeshes(modelSources[_i].GetComponent<MeshFilter>()
-                            .sharedMesh, modelSources[_i].transform.position, modelSources[_i].transform.localScale);
+                        var modelMesh = modelSources[_i].GetComponentInChildren<MeshFilter>().sharedMesh;
+                        faces = MeshGeneration.GetFaceMeshes(modelMesh, modelSources[_i].transform);
+                        meshpartHashes =
+                            MeshGeneration.GetMeshpartHashes(modelMesh, modelSources[_i].transform.localScale);
 
                         for (int j = 0; j < faces.Length; j++)
                         {
@@ -194,18 +197,18 @@ namespace LevelGeneration
 
                         EditorUtility.SetDirty(masterPrefab);
                     }
-                    else if (faces != null)
+                    else if (meshpartHashes != null)
                     {
-                        if (i == 1 && faces[0].GetHashCode() == faces[2].GetHashCode() &&
-                            faces[3].GetHashCode() == faces[5].GetHashCode())
+                        if (i == 1 && meshpartHashes[0] == meshpartHashes[2] &&
+                            meshpartHashes[3] == meshpartHashes[5])
                         {
                             // 90° rotated version would not differ to original
                             rotation = new Vector3(0, rotation.y + 90, 0);
                             continue;
                         }
 
-                        if (i == 2 && faces[0].GetHashCode() == faces[3].GetHashCode() &&
-                            faces[2].GetHashCode() == faces[5].GetHashCode())
+                        if (i == 2 && meshpartHashes[0] == meshpartHashes[3] &&
+                            meshpartHashes[2] == meshpartHashes[5])
                         {
                             // 180° rotated version would not differ to original
                             rotation = new Vector3(0, rotation.y + 90, 0);
@@ -236,7 +239,7 @@ namespace LevelGeneration
                     {
                         if (faces == null) return;
 
-                        var n = -1;
+                        int n;
 
                         if (j % 3 == 1 || i == 0)
                             n = j;

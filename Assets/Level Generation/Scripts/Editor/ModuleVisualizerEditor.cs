@@ -64,8 +64,8 @@ namespace LevelGeneration
 
             if (GUILayout.Button("Regenerate faces"))
             {
-                moduleVisualizer.faces = FaceMeshGeneration.GetFaceMeshes(moduleVisualizer.ModelMesh,
-                    moduleVisualizer.transform.position, moduleVisualizer.transform.localScale);
+                moduleVisualizer.faces =
+                    MeshGeneration.GetFaceMeshes(moduleVisualizer.ModelMesh, moduleVisualizer.transform);
             }
         }
 
@@ -78,7 +78,8 @@ namespace LevelGeneration
                 var offset = new Vector3(
                     i % 3 == 2 ? bounds.extents.x : 0,
                     i % 3 == 1 ? bounds.extents.y : 0,
-                    i % 3 == 0 ? bounds.extents.z : 0);
+                    i % 3 == 0 ? bounds.extents.z : 0
+                );
 
                 var size = Mathf.Min(bounds.extents[i % 3], bounds.extents[(i + 1) % 3]) / 2;
 

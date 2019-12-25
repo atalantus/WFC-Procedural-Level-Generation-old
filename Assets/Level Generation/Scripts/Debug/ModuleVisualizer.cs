@@ -61,9 +61,16 @@ namespace LevelGeneration
 
         private void DrawFaceMesh(int i)
         {
-            if (faces == null || faces.Length < 6) return;
+            if (faces == null || faces.Length < 6)
+                faces = MeshGeneration.GetFaceMeshes(ModelMesh, transform);
 
-            Gizmos.color = Color.red;
+            if (faces[i].Mesh.vertexCount == 0)
+            {
+                // No face mesh for this face --> everything fits --> show in GUI
+                return;
+            }
+
+            Gizmos.color = Color.blue;
             Gizmos.DrawWireMesh(faces[i].Mesh, transform.position, transform.rotation, Vector3.one);
         }
 
@@ -72,12 +79,29 @@ namespace LevelGeneration
         [Serializable]
         public struct ModuleFace
         {
-            public readonly Mesh Mesh;
-            public readonly int Hash;
+            public Mesh Mesh
+            {
+                get
+                {
+                    if (_mesh != null) return _mesh;
+                    _mesh = new Mesh {vertices = _vertices, triangles = _triangles};
+                    _mesh.RecalculateNormals();
+                    return _mesh;
+                }
+            }
+
+            private Mesh _mesh;
+            private readonly Vector3[] _vertices;
+            private readonly int[] _triangles;
+
+            // Needs to be serialized by unity so it can't be readonly
+            public int Hash { get; private set; }
 
             public ModuleFace(Mesh mesh, int hash)
             {
-                Mesh = mesh;
+                _mesh = mesh;
+                _vertices = mesh.vertices;
+                _triangles = mesh.triangles;
                 Hash = hash;
             }
 

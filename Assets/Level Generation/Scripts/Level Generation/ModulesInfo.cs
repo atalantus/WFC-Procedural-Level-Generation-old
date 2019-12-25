@@ -9,7 +9,6 @@ namespace LevelGeneration
 {
     public class ModulesInfo : ScriptableObject
     {
-        private int _counter = 0;
         public ConnectionsDictionary generatedConnections = new ConnectionsDictionary();
 
         public void AddFace(bool isManual, int hash = 0)
@@ -23,15 +22,18 @@ namespace LevelGeneration
             }
             else
             {
-                while (generatedConnections.ContainsKey(_counter))
+                // value -1 and 0 are reserved for "adjacent to nothing" and "adjacent to everything"
+                
+                var i = 1;
+                while (generatedConnections.ContainsKey(i))
                 {
-                    _counter++;
-                    if (_counter == -1)
+                    i++;
+                    if (i == -2)
                         throw new Exception("No more available Hashes in int range! " +
                                             "This is most likely a bug.");
                 }
 
-                generatedConnections.Add(_counter, 1);
+                generatedConnections.Add(i, 1);
             }
             
             EditorUtility.SetDirty(this);
