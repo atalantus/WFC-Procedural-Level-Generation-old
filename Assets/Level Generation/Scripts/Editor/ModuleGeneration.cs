@@ -21,7 +21,10 @@ namespace LevelGeneration
         private bool _generating;
         private int _i;
 
-        private Vector2 scrollPos;
+        private string _progressBarInfo = "";
+        private Vector2 _scrollPosScene;
+        private Vector2 _scrollPosEditor;
+        private int _modulesSceneCount = 0;
 
         public ModulesInfo ModulesInfo
         {
@@ -78,8 +81,15 @@ namespace LevelGeneration
                 }
                 else
                 {
+                    _progressBarInfo = $"Generating from {modelSources[_i].name} ({_i}/{modelSources.Length})";
                     DisplayProgressBar();
                     _generateModules();
+
+                    if (_i == modelSources.Length)
+                    {
+                        _progressBarInfo = "Finishing Module Generation...";
+                        DisplayProgressBar();
+                    }
                 }
             }
         }
@@ -130,6 +140,8 @@ namespace LevelGeneration
 
                 // Open Modules scene
                 EditorSceneManager.OpenScene("Assets/Level Generation/Modules.unity", OpenSceneMode.Single);
+
+                _modulesSceneCount = FindObjectsOfType<ModuleVisualizer>().Length;
 
                 // Check if Modules scene is dirty
                 // if (SceneManager.GetActiveScene().isDirty)
@@ -205,6 +217,9 @@ namespace LevelGeneration
                             masterVisualizer = masterPrefab.AddComponent<ModuleVisualizer>();
                             masterVisualizer.faces = faces;
                         }
+
+                        var localScale = meshFilter.transform.localScale;
+                        masterPrefab.transform.position = GetNextLayoutPos(new Vector2(localScale.x, localScale.z));
 
                         EditorUtility.SetDirty(masterPrefab);
                     }
@@ -282,11 +297,12 @@ namespace LevelGeneration
         /// </summary>
         private void StopModuleGeneration()
         {
+            _progressBarInfo = "Finishing Module Generation...";
+
             // Finished generating modules
             _generating = false;
             _i = 0;
             _generateModules = null;
-            EditorUtility.ClearProgressBar();
 
             // Write changes to disc
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
@@ -294,6 +310,28 @@ namespace LevelGeneration
 
             AssetDatabase.Refresh();
             AssetDatabase.SaveAssets();
+
+            EditorUtility.ClearProgressBar();
+        }
+
+        private Vector3 GetNextLayoutPos(Vector2 stepSize)
+        {
+            var pos = new Vector3();
+
+            var n = ++_modulesSceneCount;
+
+            var rc = Mathf.CeilToInt((float) Math.Sqrt(n));
+            var rcc = Mathf.Pow(rc, 2);
+            var abs = Mathf.Abs(rcc - n);
+            var z = Mathf.CeilToInt(abs / 2f);
+
+            var x = rc - z * (abs % 2);
+            var y = rc - z * (1 - abs % 2);
+
+            pos.x = x * (stepSize.x + stepSize.x / 2);
+            pos.z = -y * (stepSize.y + stepSize.y / 2);
+
+            return pos;
         }
 
         #endregion
@@ -307,6 +345,8 @@ namespace LevelGeneration
         {
             var serialObj = new SerializedObject(this);
             var serialModels = serialObj.FindProperty("modelSources");
+
+            _scrollPosEditor = EditorGUILayout.BeginScrollView(_scrollPosEditor, false, false);
 
             GUILayout.Space(10);
             GUILayout.BeginHorizontal();
@@ -333,6 +373,8 @@ namespace LevelGeneration
 
             if (GUILayout.Button("Generate", GUILayout.Width(150), GUILayout.Height(25)))
             {
+                if (_generating) return;
+
                 _generating = true;
 
                 SetupGenerateModules();
@@ -340,6 +382,11 @@ namespace LevelGeneration
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+
+
+            GUILayout.Space(15);
+
+            EditorGUILayout.EndScrollView();
 
             serialObj.ApplyModifiedProperties();
         }
@@ -370,7 +417,8 @@ namespace LevelGeneration
 
             if (ModulesInfo != null)
             {
-                scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Width(146), GUILayout.Height(200));
+                _scrollPosScene = GUILayout.BeginScrollView(_scrollPosScene, false, false, GUILayout.Width(146),
+                    GUILayout.Height(200));
 
                 foreach (var faceConnection in ModulesInfo.generatedConnections)
                 {
@@ -397,7 +445,7 @@ namespace LevelGeneration
         private void DisplayProgressBar()
         {
             if (EditorUtility.DisplayCancelableProgressBar("Generating WFC-Modules",
-                $"Generating from {modelSources[_i].name} ({_i}/{modelSources.Length})",
+                _progressBarInfo,
                 (float) _i / modelSources.Length))
             {
                 _generating = false;
