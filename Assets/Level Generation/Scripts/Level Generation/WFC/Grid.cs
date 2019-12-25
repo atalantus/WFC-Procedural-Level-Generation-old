@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace LevelGeneration
 {
@@ -8,49 +9,50 @@ namespace LevelGeneration
     public class Grid : MonoBehaviour
     {
         /// <summary>
-        /// Grid sizes
+        /// Grid dimensions
         /// </summary>
+        [Header("Options")] [Tooltip("The dimensions of the grid")]
         public Vector3Int size;
 
         /// <summary>
-        /// Grid cell scales
+        /// The scale of one cell in Unity
         /// </summary>
+        [Tooltip("The scale of one cell in Unity")]
         public Vector3Int cellScale = Vector3Int.one;
 
         /// <summary>
         /// Cell prefab
         /// </summary>
-        public GameObject cellPrefab;
+        [Tooltip("The cell prefab")] public GameObject cellPrefab;
+
+        /// <summary>
+        /// RNG seed
+        /// </summary>
+        [Tooltip("The generation seed. -1 means a random seed will be chosen.")]
+        public int seed = -1;
 
         /// <summary>
         /// Cells matrix ([width, height, depth])
         /// </summary>
-        public Cell[,,] cells;
+        [HideInInspector] public Cell[,,] cells;
 
         /// <summary>
         /// <see cref="LevelGenerator"/>
         /// </summary>
         private LevelGenerator _levelGenerator;
 
-        /// <summary>
-        /// RNG seed
-        /// </summary>
-        public int seed = -1;
-
         private void Awake()
         {
-            // TODO
-            //_levelGenerator = LevelGenerator.Instance;
+            _levelGenerator = LevelGenerator.Instance;
 
             GenerateGrid();
 
-            // Wave-function-collapse algorithm#
-            // TODO
-            //_levelGenerator.GenerateLevelWFC(ref cells, seed != -1 ? seed : Environment.TickCount);
+            // Wave-function-collapse algorithm
+            _levelGenerator.GenerateLevelWFC(ref cells, seed != -1 ? seed : Environment.TickCount);
         }
 
         /// <summary>
-        /// Generates the three-dimensional grid
+        /// Generates the three-dimensional grid.
         /// </summary>
         public void GenerateGrid()
         {
@@ -65,13 +67,12 @@ namespace LevelGeneration
                     origin.y,
                     origin.z - size.z * cellScale.z / 2f + cellScale.z / 2f
                 );
-                var curPos = bottomLeft;
 
                 for (int x = 0; x < size.x; x++)
                 for (int y = 0; y < size.y; y++)
                 for (int z = 0; z < size.z; z++)
                 {
-                    curPos = new Vector3(
+                    var curPos = new Vector3(
                         bottomLeft.x + x * cellScale.x,
                         bottomLeft.y + y * cellScale.y,
                         bottomLeft.z + z * cellScale.z
@@ -84,8 +85,6 @@ namespace LevelGeneration
                     cells[x, y, z] = cell;
                 }
 
-                Debug.Break();
-
                 // Assign neighbours for every cell
                 for (int x = 0; x < size.x; x++)
                 for (int y = 0; y < size.y; y++)
@@ -96,38 +95,37 @@ namespace LevelGeneration
                     {
                         int nx = x, ny = y, nz = z;
 
+                        // TODO: Make this cleaner with a loop and a condition over i
                         switch (i)
                         {
                             case 0:
                                 nz++;
                                 break;
                             case 1:
-                                nx++;
-                                break;
-                            case 2:
-                                nz--;
-                                break;
-                            case 3:
-                                nx--;
-                                break;
-                            case 4:
                                 ny++;
                                 break;
-                            case 5:
+                            case 2:
+                                nx++;
+                                break;
+                            case 3:
+                                nz--;
+                                break;
+                            case 4:
                                 ny--;
+                                break;
+                            case 5:
+                                nx--;
                                 break;
                         }
 
                         if (nx < 0 || ny < 0 || nz < 0 || nx > size.x - 1 || ny > size.y - 1 || nz > size.z - 1)
                         {
                             // Outside of grid`s dimensions
-                            // TODO
-                            //cell.neighbourCells[l] = null;
+                            cell.neighbourCells[i] = null;
                         }
                         else
                         {
-                            // TODO
-                            //cell.neighbourCells[l] = cells[x, z, k];
+                            cell.neighbourCells[i] = cells[nx, ny, nz];
                         }
                     }
                 }
@@ -139,7 +137,7 @@ namespace LevelGeneration
         }
 
         /// <summary>
-        /// Destroys the current grid
+        /// Destroys the current grid.
         /// </summary>
         public void RemoveGrid()
         {
@@ -150,16 +148,12 @@ namespace LevelGeneration
         }
 
         /// <summary>
-        /// Checks if the grid is valid
+        /// Checks if the grid is valid.
         /// </summary>
         /// <returns>true if the grid is valid</returns>
         public bool CheckGrid()
         {
-            // TODO
-            //var notMatchingCells = _levelGenerator.CheckGeneratedLevel(ref cells);
-
-            //return notMatchingCells.Count == 0;
-            return false;
+            return _levelGenerator.CheckGeneratedLevel(ref cells);
         }
     }
 }

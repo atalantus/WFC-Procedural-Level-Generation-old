@@ -56,7 +56,7 @@ namespace LevelGeneration
                 var face = moduleVisualizer.faces[i];
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(25);
-                GUILayout.Label($"{_faceNames[i]} ({face.Hash})");
+                GUILayout.Label($"{_faceNames[i]} ({face.hash})");
                 GUILayout.EndHorizontal();
             }
 

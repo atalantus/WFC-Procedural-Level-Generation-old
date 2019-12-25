@@ -61,7 +61,7 @@ namespace LevelGeneration
         private void DrawFaceMesh(int i)
         {
             if (faces == null || faces.Length < 6)
-                faces = MeshGeneration.GetFaceMeshes(ModelMesh,  GetComponentInChildren<MeshFilter>(true).transform);
+                faces = MeshGeneration.GetFaceMeshes(ModelMesh, GetComponentInChildren<MeshFilter>(true).transform);
 
             if (faces[i].Mesh.vertexCount == 0)
             {
@@ -94,19 +94,26 @@ namespace LevelGeneration
             private readonly int[] _triangles;
 
             // Needs to be serialized by unity so it can't be readonly
-            public int Hash { get; private set; }
+            public int hash;
 
             public ModuleFace(Mesh mesh, int hash)
             {
                 _mesh = mesh;
                 _vertices = mesh.vertices;
                 _triangles = mesh.triangles;
-                Hash = hash;
+
+                if (hash == 1)
+                {
+                    // 1 is reserved for "fits" with everything
+                    hash ^= 1000579;
+                }
+
+                this.hash = hash;
             }
 
             public override int GetHashCode()
             {
-                return Hash;
+                return hash;
             }
         }
     }

@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace LevelGeneration
 {
     /// <summary>
-    /// Acts as placeholder for the modules possibility space
+    /// Acts as placeholder for the modules possibility space.
     /// </summary>
     public class Cell : MonoBehaviour, IHeapItem<Cell>
     {
+        #region Attributes
+
         /// <summary>
         /// Solved score
         /// </summary>
@@ -26,28 +27,32 @@ namespace LevelGeneration
         public List<int> possibleModulesIndices;
 
         /// <summary>
-        /// <see cref="ModuleManager"/>
+        /// <see cref="LevelGenerator"/>
         /// </summary>
-        private ModuleManager _moduleManager;
+        private LevelGenerator _levelGenerator;
 
         /// <summary>
-        /// The neighbouring cells starting with the bottom one going counter clockwise (bottom, right, top, left)
-        /// Can be null if cell is on the grid`s edge
+        /// The adjacent cells (forward, up, right, back, down, left)
+        /// Element can be null if the cell is on the grid`s edge
         /// </summary>
-        public Cell[] neighbourCells = new Cell[4];
+        public Cell[] neighbourCells = new Cell[6];
 
         /// <summary>
         /// Heap Index
         /// </summary>
         public int HeapIndex { get; set; }
 
+        #endregion
+
+        #region Methods
+
         private void Awake()
         {
-            _moduleManager = ModuleManager.Instance;
+            _levelGenerator = LevelGenerator.Instance;
             possibleModulesIndices = new List<int>();
 
             // At the beginning every module is possible
-            for (int i = 0; i < _moduleManager.modules.Count; i++)
+            for (int i = 0; i < _levelGenerator.modules.Count; i++)
             {
                 possibleModulesIndices.Add(i);
             }
@@ -59,7 +64,8 @@ namespace LevelGeneration
         /// <param name="faceFilter">Face filter</param>
         public void FilterCell(FaceFilter faceFilter)
         {
-            //Debug.Log($"FilterCell({faceFilter.FaceIndex}, {faceFilter.FilterType.ToString()})", gameObject);
+            Util.DebugLog($"FilterCell({faceFilter.FaceIndex}, {faceFilter.FilterID.ToString()})",
+                LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
             if (SolvedScore == 1) return;
 
@@ -68,7 +74,12 @@ namespace LevelGeneration
             // Filter possible Modules list for a given filter
             for (int i = 0; i < possibleModulesIndices.Count; i++)
             {
-                var module = _moduleManager.modules[possibleModulesIndices[i]];
+                var module = _levelGenerator.modules[possibleModulesIndices[i]];
+
+                Util.DebugLog(
+                    $"Checking {module.moduleGO.name} for face filter {faceFilter.FaceIndex}, {faceFilter.FilterID}",
+                    LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
+
                 var isImpossible = module.CheckModule(faceFilter);
 
                 if (isImpossible)
@@ -84,7 +95,7 @@ namespace LevelGeneration
                 RemoveModule(removingModules[i]);
             }
 
-            // Check if the cell has only one possible module left
+            // Check if the cell has only one possible module left now
             CheckSetCell();
         }
 
@@ -96,40 +107,42 @@ namespace LevelGeneration
         public void RemoveModule(int moduleIndex)
         {
             // Check module`s face types
-            var module = _moduleManager.modules[moduleIndex];
+            var module = _levelGenerator.modules[moduleIndex];
 
             // Remove module from possibility space
             possibleModulesIndices.Remove(moduleIndex);
 
             // Update item on the heap
-            LevelGenerator.Instance.OrderedCells.UpdateItem(this);
+            _levelGenerator.orderedCells.UpdateItem(this);
 
-            //Debug.Log($"{gameObject.name} | RemoveModule({module.moduleGO.name})", gameObject);
+            Util.DebugLog($"{gameObject.name} | RemoveModule({module.moduleGO.name})",
+                LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
-            for (int j = 0; j < 4; j++)
+            for (int j = 0; j < neighbourCells.Length; j++)
             {
-                // Only check if cell has a neighbour on this face
+                // Only check if cell actually has a neighbour on this face
                 if (neighbourCells[j] == null) continue;
 
-                var faceType = module.faceConnections[j];
-                var lastFaceType = true;
+                var faceId = module.faceConnections[j];
+                var lastWithFaceId = true;
 
-                // Search in other possible modules for the same face type
+                // Search in other possible modules for the same face id on the same face
                 for (int i = 0; i < possibleModulesIndices.Count; i++)
                 {
-                    if (_moduleManager.modules[possibleModulesIndices[i]].faceConnections[j] == faceType)
+                    if (_levelGenerator.modules[possibleModulesIndices[i]].faceConnections[j] == faceId)
                     {
-                        lastFaceType = false;
+                        lastWithFaceId = false;
                         break;
                     }
                 }
 
-                if (lastFaceType)
+                if (lastWithFaceId)
                 {
-                    //Debug.Log($"{gameObject.name} | Last face({j}, {faceType.ToString()})", gameObject);
+                    Util.DebugLog($"{gameObject.name} | Last face({j}, {faceId.ToString()})",
+                        LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
                     // Populate face changes to neighbour cell
-                    var faceFilter = new FaceFilter(j, faceType);
+                    var faceFilter = new FaceFilter(j, faceId);
                     neighbourCells[j].FilterCell(faceFilter);
                 }
             }
@@ -147,7 +160,7 @@ namespace LevelGeneration
             possibleModulesIndices.Remove(moduleIndex);
 
             // Update item on the heap
-            LevelGenerator.Instance.OrderedCells.UpdateItem(this);
+            _levelGenerator.orderedCells.UpdateItem(this);
         }
 
         /// <summary>
@@ -156,33 +169,41 @@ namespace LevelGeneration
         /// <param name="moduleIndex">The module to assign</param>
         public void SetSpecialModule(int moduleIndex)
         {
-            var totalFaceTypes = possibleModulesIndices.Count;
+            var removedFaceIds = new HashSet<int>[neighbourCells.Length];
+            removedFaceIds.PopulateCollection();
 
-            possibleModulesIndices = new List<int> {moduleIndex};
-
-            var module = ModuleManager.Instance.modules[moduleIndex];
-
-            // Update item on the heap
-            LevelGenerator.Instance.OrderedCells.UpdateItem(this);
-
-            // Propagate changes to neighbours
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < possibleModulesIndices.Count; i++)
             {
-                if (neighbourCells[i] == null) continue;
+                if (i == moduleIndex) continue;
+                var removedModule = _levelGenerator.modules[i];
 
-                for (int faceType = 0; faceType < totalFaceTypes; faceType++)
+                for (int j = 0; j < removedModule.faceConnections.Length; j++)
                 {
-                    if (faceType != module.faceConnections[i])
-                    {
-                        // This face type was removed from this face
-                        // Populate face changes to neighbour cell
-                        var faceFilter = new FaceFilter(i, faceType);
-                        neighbourCells[i].FilterCell(faceFilter);
-                    }
+                    removedFaceIds[j].Add(removedModule.faceConnections[j]);
                 }
             }
 
-            var newModule = Instantiate(module.moduleGO, transform.position,
+            possibleModulesIndices = new List<int> {moduleIndex};
+            var module = _levelGenerator.modules[moduleIndex];
+
+            // Update item on the heap
+            _levelGenerator.orderedCells.UpdateItem(this);
+
+            // Propagate changes to neighbours
+            for (int i = 0; i < neighbourCells.Length; i++)
+            {
+                if (neighbourCells[i] == null) continue;
+
+                foreach (var faceId in removedFaceIds[i])
+                {
+                    // This face id was removed from this face
+                    // Populate face changes to neighbour cell
+                    var faceFilter = new FaceFilter(i, faceId);
+                    neighbourCells[i].FilterCell(faceFilter);
+                }
+            }
+
+            Instantiate(module.moduleGO, transform.position,
                 Quaternion.identity, transform);
 
             _isCellSet = true;
@@ -205,11 +226,12 @@ namespace LevelGeneration
         /// </summary>
         private void SetCell()
         {
-            //Debug.Log("Set cell!", gameObject);
+            Util.DebugLog($"Set cell {name}!", LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel,
+                gameObject);
 
             if (_isCellSet) return;
 
-            var newModule = Instantiate(ModuleManager.Instance.modules[possibleModulesIndices[0]].moduleGO,
+            Instantiate(_levelGenerator.modules[possibleModulesIndices[0]].moduleGO,
                 transform.position,
                 Quaternion.identity, transform);
 
@@ -232,5 +254,7 @@ namespace LevelGeneration
 
             return -compare;
         }
+
+        #endregion
     }
 }

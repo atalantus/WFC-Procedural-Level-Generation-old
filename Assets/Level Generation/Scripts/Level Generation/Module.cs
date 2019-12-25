@@ -26,8 +26,6 @@ namespace LevelGeneration
         /// <returns>Does this model depend on the given face filter</returns>
         public bool CheckModule(FaceFilter filter)
         {
-            //Debug.Log($"Checking {moduleGO.name} for face filter {filter.FaceIndex}, {filter.FilterType}");
-            
             // Get receiving face index of this module
             var face = (filter.FaceIndex + 3) % 6;
 

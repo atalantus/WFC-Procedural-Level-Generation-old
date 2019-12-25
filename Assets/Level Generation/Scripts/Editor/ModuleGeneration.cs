@@ -195,7 +195,7 @@ namespace LevelGeneration
 
                         for (int j = 0; j < faces.Length; j++)
                         {
-                            ModulesInfo.AddFace(false, faces[j].Hash);
+                            ModulesInfo.AddFace(false, faces[j].hash);
                         }
 
                         // Create master prefab
@@ -257,7 +257,7 @@ namespace LevelGeneration
                         else
                             n = (j + i + (i == 3 ? 2 : 1)) % 6;
 
-                        moduleAsset.faceConnections[j] = faces[n].Hash;
+                        moduleAsset.faceConnections[j] = faces[n].hash;
                     }
 
                     masterVisualizer.moduleAssets.Add(moduleAsset);
@@ -351,14 +351,26 @@ namespace LevelGeneration
         private void OnSceneGUI(SceneView sceneView)
         {
             Handles.BeginGUI();
-            GUILayout.BeginArea(new Rect(Screen.width - 160, Screen.height - 300, 150, 250),
+            GUILayout.BeginArea(new Rect(Screen.width - 160, Screen.height - 295, 150, 250),
                 new GUIStyle(GUI.skin.box));
 
             GUILayout.Label("Face Filters:", EditorStyles.boldLabel);
 
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("Toggle all", GUILayout.Width(100)))
+            {
+                Debug.Log("Toggle all");
+            }
+
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(2);
+
             if (ModulesInfo != null)
             {
-                scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Width(140), GUILayout.Height(240));
+                scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Width(146), GUILayout.Height(200));
 
                 foreach (var faceConnection in ModulesInfo.generatedConnections)
                 {

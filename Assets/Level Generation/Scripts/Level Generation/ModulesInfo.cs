@@ -22,20 +22,20 @@ namespace LevelGeneration
             }
             else
             {
-                // value -1 and 0 are reserved for "adjacent to nothing" and "adjacent to everything"
-                
-                var i = 1;
+                // value 0 and 1 are reserved for "adjacent to nothing" and "adjacent to everything"
+
+                var i = 2;
                 while (generatedConnections.ContainsKey(i))
                 {
                     i++;
-                    if (i == -2)
+                    if (i == 0)
                         throw new Exception("No more available Hashes in int range! " +
                                             "This is most likely a bug.");
                 }
 
                 generatedConnections.Add(i, 1);
             }
-            
+
             EditorUtility.SetDirty(this);
         }
     }
