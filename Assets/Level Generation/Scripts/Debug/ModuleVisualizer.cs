@@ -9,7 +9,6 @@ using UnityEngine.Serialization;
 namespace LevelGeneration
 {
     [ExecuteInEditMode]
-    [RequireComponent(typeof(MeshFilter), typeof(Renderer))]
     public class ModuleVisualizer : MonoBehaviour
     {
 #if UNITY_EDITOR
@@ -29,7 +28,7 @@ namespace LevelGeneration
         {
             get
             {
-                if (_modelMesh == null) _modelMesh = GetComponent<MeshFilter>().sharedMesh;
+                if (_modelMesh == null) _modelMesh = GetComponentInChildren<MeshFilter>(true).sharedMesh;
                 return _modelMesh;
             }
         }
@@ -38,7 +37,7 @@ namespace LevelGeneration
         {
             get
             {
-                if (_renderer == null) _renderer = GetComponent<Renderer>();
+                if (_renderer == null) _renderer = GetComponentInChildren<Renderer>(true);
                 return _renderer;
             }
         }
@@ -49,8 +48,8 @@ namespace LevelGeneration
             selectedFaceMesh = -1;
             moduleAssets = new List<Module>();
 
-            _modelMesh = GetComponent<MeshFilter>().sharedMesh;
-            _renderer = GetComponent<Renderer>();
+            _modelMesh = GetComponentInChildren<MeshFilter>(true).sharedMesh;
+            _renderer = GetComponentInChildren<Renderer>(true);
         }
 
         private void OnDrawGizmos()
@@ -62,7 +61,7 @@ namespace LevelGeneration
         private void DrawFaceMesh(int i)
         {
             if (faces == null || faces.Length < 6)
-                faces = MeshGeneration.GetFaceMeshes(ModelMesh, transform);
+                faces = MeshGeneration.GetFaceMeshes(ModelMesh,  GetComponentInChildren<MeshFilter>(true).transform);
 
             if (faces[i].Mesh.vertexCount == 0)
             {

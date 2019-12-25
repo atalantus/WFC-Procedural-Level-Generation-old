@@ -177,10 +177,21 @@ namespace LevelGeneration
 
                     if (i == 0)
                     {
-                        var modelMesh = modelSources[_i].GetComponentInChildren<MeshFilter>().sharedMesh;
-                        faces = MeshGeneration.GetFaceMeshes(modelMesh, modelSources[_i].transform);
+                        var meshFilter = modelSources[_i].GetComponentInChildren<MeshFilter>(true);
+
+                        if (meshFilter == null || modelSources[_i].GetComponentInChildren<Renderer>(true) == null)
+                        {
+                            Debug.LogWarning(
+                                $"Skipped {modelSources[_i].name} because it doesn't have a \"Mesh Filter\"" +
+                                " or a \"Renderer\" component on itself or any of this children!");
+                            ++_i;
+                            return;
+                        }
+
+                        var modelMesh = meshFilter.sharedMesh;
+                        faces = MeshGeneration.GetFaceMeshes(modelMesh, meshFilter.transform);
                         meshpartHashes =
-                            MeshGeneration.GetMeshpartHashes(modelMesh, modelSources[_i].transform.localScale);
+                            MeshGeneration.GetMeshpartHashes(modelMesh, meshFilter.transform.localScale);
 
                         for (int j = 0; j < faces.Length; j++)
                         {
@@ -231,7 +242,7 @@ namespace LevelGeneration
                     // Create prefab variant
                     var prefabVariant = PrefabUtility.SaveAsPrefabAsset(masterPrefab,
                         $"{ModulesPath}/Prefabs/{variantPath}{moduleName}.prefab");
-                    prefabVariant.transform.rotation = Quaternion.Euler(rotation);
+                    prefabVariant.GetComponentInChildren<MeshFilter>().transform.rotation = Quaternion.Euler(rotation);
 
                     // Assign asset values
                     moduleAsset.moduleGO = prefabVariant;
@@ -257,7 +268,7 @@ namespace LevelGeneration
                     rotation = new Vector3(0, rotation.y + 90, 0);
                 }
 
-                _i++;
+                ++_i;
             }
             catch (Exception e)
             {
