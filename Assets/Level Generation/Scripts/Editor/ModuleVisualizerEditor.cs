@@ -35,9 +35,6 @@ namespace LevelGeneration
                 if (GUILayout.Button("Set adjacent to nothing", GUILayout.Width(175)))
                     Debug.Log("adjacent to nothing");
 
-                if (GUILayout.Button("Set adjacent to everything", GUILayout.Width(175)))
-                    Debug.Log("adjacent to everything");
-
                 if (GUILayout.Button("Set to new adjacency id", GUILayout.Width(175)))
                     Debug.Log("new adjacency id");
             }

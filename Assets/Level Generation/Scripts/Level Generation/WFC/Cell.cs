@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿﻿using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -12,14 +12,12 @@ namespace LevelGeneration
         #region Attributes
 
         /// <summary>
-        /// Solved score.
-        /// A solved score of 0 means the cell will be empty.
-        /// A solved score of 1 means this cell is already set with a module.
+        /// Solved score
         /// </summary>
         public int SolvedScore => possibleModulesIndices.Count;
 
         /// <summary>
-        /// Is the cell already in it's final state
+        /// Was the module object already instantiated
         /// </summary>
         private bool _isCellSet;
 
@@ -69,13 +67,7 @@ namespace LevelGeneration
             Util.DebugLog($"FilterCell({faceFilter.FaceIndex}, {faceFilter.FilterID.ToString()})",
                 LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
-            if (SolvedScore <= 1)
-                // Cell is already solved
-                return;
-
-            if (faceFilter.FilterID == 0 || faceFilter.FilterID == 1)
-                // FilterId 0 and 1 are special
-                return;
+            if (SolvedScore == 1) return;
 
             var removingModules = new List<int>();
 
@@ -144,7 +136,7 @@ namespace LevelGeneration
                     }
                 }
 
-                if (lastWithFaceId && faceId != 0 && faceId != 1)
+                if (lastWithFaceId)
                 {
                     Util.DebugLog($"{gameObject.name} | Last face({j}, {faceId.ToString()})",
                         LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
@@ -187,8 +179,7 @@ namespace LevelGeneration
 
                 for (int j = 0; j < removedModule.faceConnections.Length; j++)
                 {
-                    if (removedModule.faceConnections[j] != 0)
-                        removedFaceIds[j].Add(removedModule.faceConnections[j]);
+                    removedFaceIds[j].Add(removedModule.faceConnections[j]);
                 }
             }
 
@@ -225,9 +216,9 @@ namespace LevelGeneration
         {
             // Only set cell if one final module is left
             if (SolvedScore == 1) SetCell();
-            else if (SolvedScore == 0)
-            {
-            }
+            else if (SolvedScore <= 0)
+                Debug.LogError($"Impossible Map! No fitting module could be found. solvedScore: {SolvedScore}",
+                    gameObject);
         }
 
         /// <summary>

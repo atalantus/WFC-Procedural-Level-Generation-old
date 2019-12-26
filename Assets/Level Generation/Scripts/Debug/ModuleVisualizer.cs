@@ -102,12 +102,6 @@ namespace LevelGeneration
                 _vertices = mesh.vertices;
                 _triangles = mesh.triangles;
 
-                if (hash == 1)
-                {
-                    // 1 is reserved for "fits" with everything
-                    hash ^= 1000579;
-                }
-
                 this.hash = hash;
             }
 

@@ -27,7 +27,7 @@ namespace LevelGeneration
                     Debug.Log($"<color=blue>{msg}</color>", caller);
                     break;
                 case LevelGenerator.DebugOutputLevels.All:
-                    Debug.Log($"<color=white>{msg}</color>", caller);
+                    Debug.Log(msg, caller);
                     break;
             }
         }

@@ -9,12 +9,12 @@ namespace LevelGeneration
 {
     public class ModulesInfo : ScriptableObject
     {
-        private int _index = 2; // values 0 and 1 are reserved for "adjacent to nothing" and "adjacent to everything"
+        private int _index = 1; // value 0 is reserved for "adjacent to nothing"
         public ConnectionsDictionary generatedConnections = new ConnectionsDictionary();
 
         public void AddFace(bool isManual, int hash)
         {
-            if (!isManual || hash == 0 || hash == 1)
+            if (!isManual || hash == 0)
             {
                 if (generatedConnections.ContainsKey(hash))
                     generatedConnections[hash]++;

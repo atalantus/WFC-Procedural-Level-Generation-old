@@ -46,9 +46,11 @@ namespace LevelGeneration
             _levelGenerator = LevelGenerator.Instance;
 
             GenerateGrid();
+        }
 
-            // Wave-function-collapse algorithm
-            _levelGenerator.GenerateLevelWFC(ref cells, seed != -1 ? seed : Environment.TickCount);
+        private void Start()
+        {
+            GenerateLevel();
         }
 
         /// <summary>
@@ -134,6 +136,15 @@ namespace LevelGeneration
             {
                 Debug.LogError("Impossible grid dimensions!", gameObject);
             }
+        }
+
+        /// <summary>
+        /// Starts Wave-function-collapse algorithm
+        /// </summary>
+        public void GenerateLevel()
+        {
+            // Wave-function-collapse algorithm
+            _levelGenerator.GenerateLevelWFC(ref cells, seed != -1 ? seed : Environment.TickCount);
         }
 
         /// <summary>
