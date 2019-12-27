@@ -1,4 +1,4 @@
-﻿﻿using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -203,8 +203,9 @@ namespace LevelGeneration
                 }
             }
 
-            Instantiate(module.moduleGO, transform.position,
-                Quaternion.identity, transform);
+            var go = Instantiate(module.moduleGO, transform.position,
+                Quaternion.identity);
+            go.transform.parent = transform;
 
             _isCellSet = true;
         }
@@ -231,9 +232,10 @@ namespace LevelGeneration
 
             if (_isCellSet) return;
 
-            Instantiate(_levelGenerator.modules[possibleModulesIndices[0]].moduleGO,
+            var go = Instantiate(_levelGenerator.modules[possibleModulesIndices[0]].moduleGO,
                 transform.position,
-                Quaternion.identity, transform);
+                Quaternion.identity);
+            go.transform.parent = transform;
 
             _isCellSet = true;
         }

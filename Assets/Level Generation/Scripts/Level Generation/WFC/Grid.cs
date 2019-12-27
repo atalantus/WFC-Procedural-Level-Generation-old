@@ -15,12 +15,6 @@ namespace LevelGeneration
         public Vector3Int size;
 
         /// <summary>
-        /// The scale of one cell in Unity
-        /// </summary>
-        [Tooltip("The scale of one cell in Unity")]
-        public Vector3Int cellScale = Vector3Int.one;
-
-        /// <summary>
         /// Cell prefab
         /// </summary>
         [Tooltip("The cell prefab")] public GameObject cellPrefab;
@@ -58,6 +52,8 @@ namespace LevelGeneration
         /// </summary>
         public void GenerateGrid()
         {
+            var cellScale = cellPrefab.transform.localScale;
+            
             if (size.x > 0 && size.y > 0 && size.z > 0)
             {
                 // Generate grid

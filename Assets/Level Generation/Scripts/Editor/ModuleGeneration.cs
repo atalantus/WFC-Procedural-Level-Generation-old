@@ -10,6 +10,7 @@ namespace LevelGeneration
 {
     public class ModuleGeneration : EditorWindow
     {
+        public Cell cell;
         public GameObject[] modelSources;
 
         private const string ModulesPath = "Assets/Level Generation/Modules";
@@ -73,7 +74,7 @@ namespace LevelGeneration
 
             if (_generating)
             {
-                if (modelSources == null || _i == modelSources.Length)
+                if (modelSources == null || cell == null || _i == modelSources.Length)
                 {
                     StopModuleGeneration();
                 }
@@ -227,7 +228,7 @@ namespace LevelGeneration
                         }
 
                         var modelMesh = meshFilter.sharedMesh;
-                        faces = MeshGeneration.GetFaceMeshes(modelMesh, meshFilter.transform);
+                        faces = MeshGeneration.GetFaceMeshes(modelMesh, meshFilter.transform, cell.transform.localScale);
                         meshpartHashes =
                             MeshGeneration.GetMeshpartHashes(modelMesh, meshFilter.transform.localScale);
 
@@ -242,6 +243,7 @@ namespace LevelGeneration
                         {
                             masterVisualizer = masterPrefab.AddComponent<ModuleVisualizer>();
                             masterVisualizer.faces = faces;
+                            masterVisualizer.cell = cell;
                         }
 
                         var localScale = meshFilter.transform.localScale;
@@ -370,6 +372,7 @@ namespace LevelGeneration
         private void DrawGUI()
         {
             var serialObj = new SerializedObject(this);
+            var serialCell = serialObj.FindProperty("cell");
             var serialModels = serialObj.FindProperty("modelSources");
 
             _scrollPosEditor = EditorGUILayout.BeginScrollView(_scrollPosEditor, false, false);
@@ -389,6 +392,10 @@ namespace LevelGeneration
                 EditorStyles.wordWrappedLabel);
 
             GUILayout.Space(20);
+
+            EditorGUILayout.PropertyField(serialCell, new GUIContent("Module cell"));
+            
+            GUILayout.Space(5);
 
             EditorGUILayout.PropertyField(serialModels, true);
 

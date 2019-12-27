@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace LevelGeneration
 {
-    [CustomEditor(typeof(ModuleVisualizer))]
+    [CustomEditor(typeof(ModuleVisualizer)), CanEditMultipleObjects]
     class ButtonExampleEditor : Editor
     {
         private readonly string[] _faceNames = {"Forward", "Up", "Right", "Back", "Down", "Left"};
@@ -60,6 +60,9 @@ namespace LevelGeneration
 
             GUILayout.Space(10);
 
+            moduleVisualizer.moduleBottomCenterOffset = EditorGUILayout.Vector3Field("Bottom Center Offset:",
+                moduleVisualizer.moduleBottomCenterOffset);
+
             GUILayout.Label($"{moduleVisualizer.faces.Length} Faces:", EditorStyles.boldLabel);
             for (var i = 0; i < moduleVisualizer.faces.Length; i++)
             {
@@ -76,14 +79,14 @@ namespace LevelGeneration
             {
                 moduleVisualizer.faces =
                     MeshGeneration.GetFaceMeshes(moduleVisualizer.ModelMesh,
-                        moduleVisualizer.GetComponentInChildren<MeshFilter>(true).transform);
+                        moduleVisualizer.GetComponentInChildren<MeshFilter>(true).transform,
+                        moduleVisualizer.cell == null ? Vector3.one : moduleVisualizer.cell.transform.localScale);
             }
         }
 
         private void ShowFaceHandles(ModuleVisualizer moduleVisualizer)
         {
-            var bounds = moduleVisualizer.Renderer.bounds;
-
+            var bounds = moduleVisualizer.ModuleBounds;
             for (int i = 0; i < 6; i++)
             {
                 var offset = new Vector3(
@@ -92,7 +95,7 @@ namespace LevelGeneration
                     i % 3 == 0 ? bounds.extents.z : 0
                 );
 
-                var size = Mathf.Min(bounds.extents[i % 3], bounds.extents[(i + 1) % 3]) / 2;
+                var size = Mathf.Max((Mathf.Min(bounds.extents[i % 3], bounds.extents[(i + 1) % 3]) / 2), 0.1f);
 
                 var pos = bounds.center + (i > 2 ? -offset : offset);
 
