@@ -3,25 +3,25 @@ using UnityEngine;
 
 namespace LevelGeneration
 {
-    [CustomEditor(typeof(Grid))]
-    public class GridEditor : Editor
+    [CustomEditor(typeof(LevelGenerator), true)]
+    public class LevelGeneratorEditor : Editor
     {
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
 
-            var grid = (Grid) target;
-            
-            GUILayout.Space(15);
+            var levelGenerator = (LevelGenerator) target;
+
+            GUILayout.Space(20);
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            
+
             if (GUILayout.Button("Generate Level", GUILayout.Width(175), GUILayout.Height(25)))
             {
-                grid.GenerateLevel();
+                levelGenerator.GenerateLevel();
             }
-            
+
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
