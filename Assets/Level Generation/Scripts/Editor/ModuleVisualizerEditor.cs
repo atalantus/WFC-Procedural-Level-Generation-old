@@ -80,7 +80,8 @@ namespace LevelGeneration
                 moduleVisualizer.faces =
                     MeshGeneration.GetFaceMeshes(moduleVisualizer.ModelMesh,
                         moduleVisualizer.GetComponentInChildren<MeshFilter>(true).transform,
-                        moduleVisualizer.cell == null ? Vector3.one : moduleVisualizer.cell.transform.localScale);
+                        moduleVisualizer.cell == null ? Vector3.one : moduleVisualizer.cell.transform.localScale,
+                        moduleVisualizer.moduleBottomCenterOffset);
             }
         }
 

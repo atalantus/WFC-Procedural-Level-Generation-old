@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEditor;
 using UnityEngine;
 
 namespace LevelGeneration
@@ -6,6 +7,7 @@ namespace LevelGeneration
     /// <summary>
     /// Controls the grid
     /// </summary>
+    [ExecuteInEditMode]
     public class Grid : MonoBehaviour
     {
         /// <summary>
@@ -38,13 +40,6 @@ namespace LevelGeneration
         private void Awake()
         {
             _levelGenerator = LevelGenerator.Instance;
-
-            GenerateGrid();
-        }
-
-        private void Start()
-        {
-            GenerateLevel();
         }
 
         /// <summary>
@@ -52,8 +47,10 @@ namespace LevelGeneration
         /// </summary>
         public void GenerateGrid()
         {
+            Debug.Log("Generate Grid");
+
             var cellScale = cellPrefab.transform.localScale;
-            
+
             if (size.x > 0 && size.y > 0 && size.z > 0)
             {
                 // Generate grid
@@ -139,6 +136,10 @@ namespace LevelGeneration
         /// </summary>
         public void GenerateLevel()
         {
+            RemoveGrid();
+
+            GenerateGrid();
+
             // Wave-function-collapse algorithm
             _levelGenerator.GenerateLevelWFC(ref cells, seed != -1 ? seed : Environment.TickCount);
         }
@@ -150,17 +151,14 @@ namespace LevelGeneration
         {
             foreach (Transform child in gameObject.transform)
             {
+#if UNITY_EDITOR
+                DestroyImmediate(child.gameObject);
+#else
                 Destroy(child.gameObject);
+#endif
             }
-        }
 
-        /// <summary>
-        /// Checks if the grid is valid.
-        /// </summary>
-        /// <returns>true if the grid is valid</returns>
-        public bool CheckGrid()
-        {
-            return _levelGenerator.CheckGeneratedLevel(ref cells);
+            Debug.Log("Removed Grid");
         }
     }
 }

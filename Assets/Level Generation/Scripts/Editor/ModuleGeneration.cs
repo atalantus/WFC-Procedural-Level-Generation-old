@@ -11,6 +11,7 @@ namespace LevelGeneration
     public class ModuleGeneration : EditorWindow
     {
         public Cell cell;
+        public Vector3 modelBottomCenterOffset;
         public GameObject[] modelSources;
 
         private const string ModulesPath = "Assets/Level Generation/Modules";
@@ -228,7 +229,9 @@ namespace LevelGeneration
                         }
 
                         var modelMesh = meshFilter.sharedMesh;
-                        faces = MeshGeneration.GetFaceMeshes(modelMesh, meshFilter.transform, cell.transform.localScale);
+                        faces =
+                            MeshGeneration.GetFaceMeshes(modelMesh, meshFilter.transform,
+                                cell.transform.localScale, modelBottomCenterOffset);
                         meshpartHashes =
                             MeshGeneration.GetMeshpartHashes(modelMesh, meshFilter.transform.localScale);
 
@@ -244,6 +247,7 @@ namespace LevelGeneration
                             masterVisualizer = masterPrefab.AddComponent<ModuleVisualizer>();
                             masterVisualizer.faces = faces;
                             masterVisualizer.cell = cell;
+                            masterVisualizer.moduleBottomCenterOffset = modelBottomCenterOffset;
                         }
 
                         var localScale = meshFilter.transform.localScale;
@@ -394,8 +398,14 @@ namespace LevelGeneration
             GUILayout.Space(20);
 
             EditorGUILayout.PropertyField(serialCell, new GUIContent("Module cell"));
-            
-            GUILayout.Space(5);
+
+            modelBottomCenterOffset =
+                EditorGUILayout.Vector3Field(
+                    new GUIContent("Model's Bottom Center Offset:",
+                        "The offset between of the mesh's transform position to it's bottom center point"),
+                    modelBottomCenterOffset);
+
+            GUILayout.Space(15);
 
             EditorGUILayout.PropertyField(serialModels, true);
 

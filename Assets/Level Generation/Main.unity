@@ -150,10 +150,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   modules:
-  - {fileID: 11400000, guid: 6ec9ffd889d9b564ba2a5a1f12bbae1d, type: 2}
-  - {fileID: 11400000, guid: ba5ad25e2458dee418a615d05d24b987, type: 2}
+  - {fileID: 11400000, guid: cd4345616d40d6d40abde910ed4bce4a, type: 2}
+  - {fileID: 11400000, guid: 89fb5add69ccdbf4681abf04f0eaebb0, type: 2}
   runInExtraThread: 1
-  debugOutputLevel: 1
+  debugOutputLevel: 2
   validateCellAdjacency: 1
 --- !u!4 &216833267
 Transform:
@@ -289,11 +289,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f3eb95feb2023543ac832c5d26fdf78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: {x: 5, y: 2, z: 5}
-  cellScale: {x: 1, y: 1, z: 1}
+  size: {x: 2, y: 1, z: 1}
   cellPrefab: {fileID: 4559502570846079236, guid: cfe4d760fa6faa34cb340be1a13d380b,
     type: 3}
-  seed: -1
+  seed: 105453968
 --- !u!4 &1136937952
 Transform:
   m_ObjectHideFlags: 0

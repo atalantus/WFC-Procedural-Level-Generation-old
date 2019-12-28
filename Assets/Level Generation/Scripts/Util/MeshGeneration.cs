@@ -16,8 +16,12 @@ namespace LevelGeneration
         /// Creates the 6 different face meshes of a given mesh.
         /// </summary>
         /// <param name="mesh">The mesh</param>
+        /// <param name="meshScale">The mesh transform's scale</param>
+        /// <param name="cellScale">The cell transform's scale</param>
+        /// <param name="bottomCenterOffset">The offset between of the mesh's transform position to it's bottom center point</param>
         /// <returns>The different face meshes (forward, up, right, back, down, left)</returns>
-        public static ModuleVisualizer.ModuleFace[] GetFaceMeshes(Mesh mesh, Transform transform, Vector3 cellScale)
+        public static ModuleVisualizer.ModuleFace[] GetFaceMeshes(Mesh mesh, Transform meshTransform, Vector3 cellScale,
+            Vector3 bottomCenterOffset)
         {
             var faces = new ModuleVisualizer.ModuleFace[6];
 
@@ -26,15 +30,10 @@ namespace LevelGeneration
             var mVertices = mesh.vertices;
             var mTriangles = mesh.triangles;
             var mNormals = mesh.normals;
-            var mCenter = mesh.bounds.center;
-            var mExtents = mesh.bounds.extents;
-            var tLocalScale = transform.localScale;
+            var mScale = meshTransform.localScale;
             var cTransformCenter = cellScale / 2;
-            Debug.Log(cTransformCenter);
-            Debug.Log(mesh.bounds.center);
-            Debug.Log(mesh.bounds.extents);
-            Debug.Log(mesh.bounds.max);
-            Debug.Log(mesh.bounds.min);
+            var cBounds = new Bounds(meshTransform.position + bottomCenterOffset + new Vector3(0, cellScale.y / 2, 0),
+                cellScale);
 
             var meshes = new Mesh[6];
             meshes.PopulateCollection();
@@ -51,52 +50,28 @@ namespace LevelGeneration
                 var vertices = new[] {mVertices[indices[0]], mVertices[indices[1]], mVertices[indices[2]]};
                 var normals = new[] {mNormals[indices[0]], mNormals[indices[1]], mNormals[indices[2]]};
 
-                var transformOriginToTriCenter = (vertices[0] + vertices[1] + vertices[2]) / 3;
-                var meshCenterToTriCenter = transformOriginToTriCenter - mCenter;
-
-                // skip triangles that don't lie on the mesh bounds
-                // check if triangle is not on mesh bounds (no coordinate equals extent)
-                if (Mathf.Abs(meshCenterToTriCenter.x) < mExtents.x - lossOfFractionThreshold &&
-                    Mathf.Abs(meshCenterToTriCenter.y) < mExtents.y - lossOfFractionThreshold &&
-                    Mathf.Abs(meshCenterToTriCenter.z) < mExtents.z - lossOfFractionThreshold)
-                {
-                    continue;
-                }
-
                 var faceNormal = (normals[0] + normals[1] + normals[2]) / 3;
 
                 // apply local scale to vertices
                 for (int j = 0; j < vertices.Length; j++)
                 {
                     vertices[j] = new Vector3(
-                        vertices[j].x * tLocalScale.x,
-                        vertices[j].y * tLocalScale.y,
-                        vertices[j].z * tLocalScale.z
+                        vertices[j].x * mScale.x,
+                        vertices[j].y * mScale.y,
+                        vertices[j].z * mScale.z
                     );
                 }
 
-                /*
-                
-                // TODO: Filter triangles not touching cell bounds
-                transformOriginToTriCenter = (vertices[0] + vertices[1] + vertices[2]) / 3;
-                var cTransformCenterRelative = cTransformCenter - transform.position;
-                var transformCenterToTriCenter = transformOriginToTriCenter - cTransformCenterRelative;
-                Debug.Log(
-                    $"{transformOriginToTriCenter.x:F5}, {transformOriginToTriCenter.y:F5}, {transformOriginToTriCenter.z:F5}");
-                Debug.Log(
-                    $"{transformCenterToTriCenter.x:F5}, {transformCenterToTriCenter.y:F5}, {transformCenterToTriCenter.z:F5}");
+                var transformOriginToTriCenter = (vertices[0] + vertices[1] + vertices[2]) / 3;
+                var transformCenterToTriCenter = transformOriginToTriCenter - cBounds.center;
 
-                // skip triangles that don't lie on the mesh bounds
-                // check if triangle is not on mesh bounds (no coordinate equals extent)
-                if (Mathf.Abs(transformCenterToTriCenter.x) < cTransformCenter.x - lossOfFractionThreshold &&
-                    Mathf.Abs(transformCenterToTriCenter.y) < cTransformCenter.y - lossOfFractionThreshold &&
-                    Mathf.Abs(transformCenterToTriCenter.z) < cTransformCenter.z - lossOfFractionThreshold)
+                // skip triangles that don't lie on the cell's bounds
+                if (Mathf.Abs(transformCenterToTriCenter.x) < cBounds.extents.x - lossOfFractionThreshold &&
+                    Mathf.Abs(transformCenterToTriCenter.y) < cBounds.extents.y - lossOfFractionThreshold &&
+                    Mathf.Abs(transformCenterToTriCenter.z) < cBounds.extents.z - lossOfFractionThreshold)
                 {
-                    Debug.LogWarning("Skip triangle!");
                     continue;
                 }
-                
-                */
 
                 // Sort triangle to right face
                 for (int j = 0; j < faceNormals.Length; j++)

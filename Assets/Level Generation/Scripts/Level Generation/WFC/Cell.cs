@@ -7,6 +7,7 @@ namespace LevelGeneration
     /// <summary>
     /// Acts as placeholder for the modules possibility space.
     /// </summary>
+    [ExecuteInEditMode]
     public class Cell : MonoBehaviour, IHeapItem<Cell>
     {
         #region Attributes
@@ -218,7 +219,8 @@ namespace LevelGeneration
             // Only set cell if one final module is left
             if (SolvedScore == 1) SetCell();
             else if (SolvedScore <= 0)
-                Debug.LogError($"Impossible Map! No fitting module could be found. solvedScore: {SolvedScore}",
+                Debug.LogError(
+                    $"Impossible Map! No fitting module could be found for {name}. solved Score: {SolvedScore}",
                     gameObject);
         }
 

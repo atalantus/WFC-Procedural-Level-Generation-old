@@ -1,4 +1,4 @@
-﻿﻿using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -10,6 +10,7 @@ namespace LevelGeneration
     /// Generates level using the wave-function-collapse algorithm.
     /// Singleton class.
     /// </summary>
+    [ExecuteInEditMode]
     public abstract class LevelGenerator : MonoBehaviour
     {
         #region Attributes
@@ -150,6 +151,13 @@ namespace LevelGeneration
                 while (orderedCells.Count > 0)
                 {
                     var cell = orderedCells.GetFirst();
+
+                    if (cell.SolvedScore <= 0)
+                    {
+                        Debug.LogError(
+                            $"Impossible Map! No fitting module could be found for {cell}. solved Score: {cell.SolvedScore}",
+                            gameObject);
+                    }
 
                     if (cell.SolvedScore == 1)
                     {
