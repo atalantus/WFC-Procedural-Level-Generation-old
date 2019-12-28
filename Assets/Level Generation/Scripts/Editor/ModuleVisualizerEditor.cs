@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace LevelGeneration
 {
-    [CustomEditor(typeof(ModuleVisualizer)), CanEditMultipleObjects]
+    [CustomEditor(typeof(ModuleVisualizer))]
     class ButtonExampleEditor : Editor
     {
         private readonly string[] _faceNames = {"Forward", "Up", "Right", "Back", "Down", "Left"};
@@ -13,7 +13,7 @@ namespace LevelGeneration
         {
             var moduleVisualizer = (ModuleVisualizer) target;
 
-            if (moduleVisualizer.showHandles)
+            if (moduleVisualizer.selectedFaceMesh == -1)
                 ShowFaceHandles(moduleVisualizer);
 
             #region Scene UI
@@ -21,7 +21,7 @@ namespace LevelGeneration
             Handles.BeginGUI();
             GUILayout.BeginArea(new Rect(10, 10, 185, 95), new GUIStyle(GUI.skin.box));
 
-            if (moduleVisualizer.showHandles)
+            if (moduleVisualizer.selectedFaceMesh == -1)
             {
                 GUILayout.Label("Select a face", EditorStyles.boldLabel);
             }
@@ -29,7 +29,7 @@ namespace LevelGeneration
             {
                 EditorStyles.label.wordWrap = true;
                 GUILayout.Label(
-                    $"Selected face: {_faceNames[moduleVisualizer.selectedFaceMesh]} ({moduleVisualizer.faces[moduleVisualizer.selectedFaceMesh].hash})",
+                    $"Selected face: {_faceNames[moduleVisualizer.selectedFaceMesh]} ({moduleVisualizer.faces[moduleVisualizer.selectedFaceMesh].GetHashCode()})",
                     EditorStyles.boldLabel);
 
                 if (GUILayout.Button("Set adjacent to nothing", GUILayout.Width(175)))
@@ -50,8 +50,7 @@ namespace LevelGeneration
             var moduleVisualizer = (ModuleVisualizer) target;
 
             // deselected object
-            moduleVisualizer.selectedFaceMesh = -1;
-            moduleVisualizer.showHandles = true;
+            moduleVisualizer.DeselectMeshFace();
         }
 
         public override void OnInspectorGUI()
@@ -69,7 +68,7 @@ namespace LevelGeneration
                 var face = moduleVisualizer.faces[i];
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(25);
-                GUILayout.Label($"{_faceNames[i]} ({face.hash})");
+                GUILayout.Label($"{_faceNames[i]} ({face.GetHashCode()})");
                 GUILayout.EndHorizontal();
             }
 
@@ -103,8 +102,7 @@ namespace LevelGeneration
                 if (Handles.Button(pos, Quaternion.Euler(i % 3 == 1 ? 90 : 0, i % 3 == 2 ? 90 : 0, 0), size, size,
                     Handles.RectangleHandleCap))
                 {
-                    moduleVisualizer.showHandles = false;
-                    moduleVisualizer.selectedFaceMesh = i;
+                    moduleVisualizer.SelectMeshFace(i);
                 }
             }
         }

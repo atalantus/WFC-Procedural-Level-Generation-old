@@ -237,7 +237,7 @@ namespace LevelGeneration
 
                         for (int j = 0; j < faces.Length; j++)
                         {
-                            ModulesInfo.AddFace(false, faces[j].hash);
+                            ModulesInfo.AddFace(false, faces[j].GetHashCode());
                         }
 
                         // Create master prefab
@@ -304,7 +304,7 @@ namespace LevelGeneration
                         else
                             n = (j + i + (i == 3 ? 2 : 1)) % 6;
 
-                        moduleAsset.faceConnections[j] = faces[n].hash;
+                        moduleAsset.faceConnections[j] = faces[n].GetHashCode();
                     }
 
                     masterVisualizer.moduleAssets.Add(moduleAsset);
@@ -360,8 +360,8 @@ namespace LevelGeneration
             var x = rc - z * (abs % 2);
             var y = rc - z * (1 - abs % 2);
 
-            pos.x = x * (stepSize.x + stepSize.x / 2);
-            pos.z = -y * (stepSize.y + stepSize.y / 2);
+            pos.x = x * (stepSize.x * 1.5f);
+            pos.z = -y * (stepSize.y * 1.5f);
 
             return pos;
         }

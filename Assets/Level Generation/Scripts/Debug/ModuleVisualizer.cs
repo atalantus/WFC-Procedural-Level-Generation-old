@@ -13,10 +13,15 @@ namespace LevelGeneration
     {
 #if UNITY_EDITOR
 
+        private delegate void OnFaceEventHandler(ModuleFace selectedFace);
+
+        private static event OnFaceEventHandler OnFaceSelectEvent;
+        private static event OnFaceEventHandler OnFaceDeselectEvent;
+
         private Mesh _modelMesh;
         private Renderer _renderer;
-        [HideInInspector] public bool showHandles = true;
-        [HideInInspector] public int selectedFaceMesh = -1;
+        public int selectedFaceMesh = -1;
+        private List<int> _shownFaceMeshes;
         public Vector3 moduleBottomCenterOffset = Vector3.zero;
         public List<Module> moduleAssets;
         public Cell cell;
@@ -50,30 +55,63 @@ namespace LevelGeneration
 
         private void Awake()
         {
-            showHandles = true;
             selectedFaceMesh = -1;
+            _shownFaceMeshes = new List<int>();
             moduleAssets = new List<Module>();
 
             _modelMesh = GetComponentInChildren<MeshFilter>(true).sharedMesh;
             _renderer = GetComponentInChildren<Renderer>(true);
+
+            OnFaceSelectEvent += face =>
+            {
+                for (var i = 0; i < faces.Length; i++)
+                {
+                    var moduleFace = faces[i];
+                    if (moduleFace.GetHashCode() == face.GetHashCode())
+                    {
+                        _shownFaceMeshes.Add(i);
+                    }
+                }
+            };
+
+            OnFaceDeselectEvent += face => { _shownFaceMeshes = new List<int>(); };
         }
 
         private void OnDrawGizmos()
         {
-            if (selectedFaceMesh >= 0)
-                DrawFaceMesh(selectedFaceMesh);
+            if (_shownFaceMeshes.Count > 0)
+                DrawFaceMeshes();
         }
 
-        private void DrawFaceMesh(int i)
+        private void DrawFaceMeshes()
         {
-            if (faces[i].Mesh.vertexCount == 0)
+            foreach (var i in _shownFaceMeshes)
             {
-                // No face mesh for this face --> everything fits --> show in GUI
-                return;
-            }
+                if (faces[i].Mesh.vertexCount == 0)
+                {
+                    // No face mesh for this face --> everything fits --> show in GUI
+                    return;
+                }
 
-            Gizmos.color = Color.blue;
-            Gizmos.DrawWireMesh(faces[i].Mesh, transform.position, transform.rotation, Vector3.one);
+                Gizmos.color = i == selectedFaceMesh ? Color.red : Color.blue;
+                Gizmos.DrawWireMesh(faces[i].Mesh, transform.position, transform.rotation, Vector3.one);
+            }
+        }
+
+        public void SelectMeshFace(int i)
+        {
+            selectedFaceMesh = i;
+
+            OnFaceSelectEvent?.Invoke(faces[selectedFaceMesh]);
+        }
+
+        public void DeselectMeshFace()
+        {
+            if (selectedFaceMesh == -1) return;
+
+            OnFaceDeselectEvent?.Invoke(faces[selectedFaceMesh]);
+
+            selectedFaceMesh = -1;
         }
 
 #endif
@@ -86,30 +124,40 @@ namespace LevelGeneration
                 get
                 {
                     if (_mesh != null) return _mesh;
-                    _mesh = new Mesh {vertices = _vertices, triangles = _triangles};
+                    _mesh = new Mesh {vertices = vertices, triangles = triangles};
                     _mesh.RecalculateNormals();
                     return _mesh;
                 }
             }
 
             private Mesh _mesh;
-            private readonly Vector3[] _vertices;
-            private readonly int[] _triangles;
 
-            // Needs to be serialized by unity so it can't be readonly
-            public int hash;
+            [SerializeField] private Vector3[] vertices;
+            [SerializeField] public int[] triangles;
+            [SerializeField] private int hash;
 
             public ModuleFace(Mesh mesh, int hash)
             {
                 _mesh = mesh;
-                _vertices = mesh.vertices;
-                _triangles = mesh.triangles;
+                vertices = mesh.vertices;
+                triangles = mesh.triangles;
 
                 this.hash = hash;
             }
 
+            public override bool Equals(object obj)
+            {
+                return obj is ModuleFace other && Equals(other);
+            }
+
+            public bool Equals(ModuleFace other)
+            {
+                return Mesh.Equals(other.Mesh);
+            }
+
             public override int GetHashCode()
             {
+                // Unity doesn't serialize readonly fields!
                 return hash;
             }
         }
