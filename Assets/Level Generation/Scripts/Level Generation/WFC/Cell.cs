@@ -7,6 +7,7 @@ namespace LevelGeneration
     /// <summary>
     /// Acts as placeholder for the modules possibility space.
     /// </summary>
+    [ExecuteInEditMode]
     public class Cell : MonoBehaviour, IHeapItem<Cell>
     {
         #region Attributes
@@ -203,8 +204,9 @@ namespace LevelGeneration
                 }
             }
 
-            Instantiate(module.moduleGO, transform.position,
-                Quaternion.identity, transform);
+            var go = Instantiate(module.moduleGO, transform.position,
+                Quaternion.identity);
+            go.transform.parent = transform;
 
             _isCellSet = true;
         }
@@ -217,7 +219,8 @@ namespace LevelGeneration
             // Only set cell if one final module is left
             if (SolvedScore == 1) SetCell();
             else if (SolvedScore <= 0)
-                Debug.LogError($"Impossible Map! No fitting module could be found. solvedScore: {SolvedScore}",
+                Debug.LogError(
+                    $"Impossible Map! No fitting module could be found for {name}. solved Score: {SolvedScore}",
                     gameObject);
         }
 
@@ -231,9 +234,10 @@ namespace LevelGeneration
 
             if (_isCellSet) return;
 
-            Instantiate(_levelGenerator.modules[possibleModulesIndices[0]].moduleGO,
+            var go = Instantiate(_levelGenerator.modules[possibleModulesIndices[0]].moduleGO,
                 transform.position,
-                Quaternion.identity, transform);
+                Quaternion.identity);
+            go.transform.parent = transform;
 
             _isCellSet = true;
         }

@@ -1,17 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
+using Object = UnityEngine.Object;
 
 namespace LevelGeneration
 {
     public class ModuleGeneration : EditorWindow
     {
+        public Cell cell;
+        public Vector3 modelBottomCenterOffset;
         public GameObject[] modelSources;
 
         private const string ModulesPath = "Assets/Level Generation/Modules";
@@ -75,7 +75,7 @@ namespace LevelGeneration
 
             if (_generating)
             {
-                if (modelSources == null || _i == modelSources.Length)
+                if (modelSources == null || cell == null || _i == modelSources.Length)
                 {
                     StopModuleGeneration();
                 }
@@ -153,6 +153,9 @@ namespace LevelGeneration
                 //     return;
                 // }
 
+                // Create empty module
+                CreateEmptyModule();
+
                 // Refresh Asset Database
                 AssetDatabase.Refresh();
 
@@ -165,6 +168,31 @@ namespace LevelGeneration
                 StopModuleGeneration();
                 Debug.LogError(e);
             }
+        }
+
+        private void CreateEmptyModule()
+        {
+            // Create prefab
+            var obj = new GameObject("_Empty");
+            var prefab = PrefabUtility.SaveAsPrefabAsset(obj, $"{ModulesPath}/Prefabs/_Empty.prefab");
+            DestroyImmediate(obj);
+
+            EditorUtility.SetDirty(prefab);
+
+            var moduleAsset = CreateInstance<Module>();
+
+            // Create asset
+            AssetDatabase.CreateAsset(moduleAsset, $"{ModulesPath}/Assets/_Empty.asset");
+
+            // Assign asset values
+            moduleAsset.moduleGO = prefab;
+            for (int j = 0; j < moduleAsset.faceConnections.Length; j++)
+            {
+                moduleAsset.faceConnections[j] = 0;
+            }
+
+            // Mark asset as dirty
+            EditorUtility.SetDirty(moduleAsset);
         }
 
         /// <summary>
@@ -201,7 +229,9 @@ namespace LevelGeneration
                         }
 
                         var modelMesh = meshFilter.sharedMesh;
-                        faces = MeshGeneration.GetFaceMeshes(modelMesh, meshFilter.transform);
+                        faces =
+                            MeshGeneration.GetFaceMeshes(modelMesh, meshFilter.transform,
+                                cell.transform.localScale, modelBottomCenterOffset);
                         meshpartHashes =
                             MeshGeneration.GetMeshpartHashes(modelMesh, meshFilter.transform.localScale);
 
@@ -216,6 +246,8 @@ namespace LevelGeneration
                         {
                             masterVisualizer = masterPrefab.AddComponent<ModuleVisualizer>();
                             masterVisualizer.faces = faces;
+                            masterVisualizer.cell = cell;
+                            masterVisualizer.moduleBottomCenterOffset = modelBottomCenterOffset;
                         }
 
                         var localScale = meshFilter.transform.localScale;
@@ -344,6 +376,7 @@ namespace LevelGeneration
         private void DrawGUI()
         {
             var serialObj = new SerializedObject(this);
+            var serialCell = serialObj.FindProperty("cell");
             var serialModels = serialObj.FindProperty("modelSources");
 
             _scrollPosEditor = EditorGUILayout.BeginScrollView(_scrollPosEditor, false, false);
@@ -363,6 +396,16 @@ namespace LevelGeneration
                 EditorStyles.wordWrappedLabel);
 
             GUILayout.Space(20);
+
+            EditorGUILayout.PropertyField(serialCell, new GUIContent("Module cell"));
+
+            modelBottomCenterOffset =
+                EditorGUILayout.Vector3Field(
+                    new GUIContent("Model's Bottom Center Offset:",
+                        "The offset between of the mesh's transform position to it's bottom center point"),
+                    modelBottomCenterOffset);
+
+            GUILayout.Space(15);
 
             EditorGUILayout.PropertyField(serialModels, true);
 

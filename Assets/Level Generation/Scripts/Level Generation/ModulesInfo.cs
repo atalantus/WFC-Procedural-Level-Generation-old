@@ -9,11 +9,12 @@ namespace LevelGeneration
 {
     public class ModulesInfo : ScriptableObject
     {
+        private int _index = 1; // value 0 is reserved for "adjacent to nothing"
         public ConnectionsDictionary generatedConnections = new ConnectionsDictionary();
 
-        public void AddFace(bool isManual, int hash = 0)
+        public void AddFace(bool isManual, int hash)
         {
-            if (!isManual)
+            if (!isManual || hash == 0)
             {
                 if (generatedConnections.ContainsKey(hash))
                     generatedConnections[hash]++;
@@ -22,18 +23,15 @@ namespace LevelGeneration
             }
             else
             {
-                // value 0 and 1 are reserved for "adjacent to nothing" and "adjacent to everything"
-
-                var i = 2;
-                while (generatedConnections.ContainsKey(i))
+                while (generatedConnections.ContainsKey(_index))
                 {
-                    i++;
-                    if (i == 0)
+                    _index++;
+                    if (_index == 0)
                         throw new Exception("No more available Hashes in int range! " +
                                             "This is most likely a bug.");
                 }
 
-                generatedConnections.Add(i, 1);
+                generatedConnections.Add(_index, 1);
             }
 
             EditorUtility.SetDirty(this);

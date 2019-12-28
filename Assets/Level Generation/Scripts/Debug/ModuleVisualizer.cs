@@ -17,7 +17,13 @@ namespace LevelGeneration
         private Renderer _renderer;
         [HideInInspector] public bool showHandles = true;
         [HideInInspector] public int selectedFaceMesh = -1;
-        [HideInInspector] public List<Module> moduleAssets;
+        public Vector3 moduleBottomCenterOffset = Vector3.zero;
+        public List<Module> moduleAssets;
+        public Cell cell;
+
+        public Bounds ModuleBounds => new Bounds(
+            transform.position + moduleBottomCenterOffset + new Vector3(0, cell.transform.localScale.y / 2, 0),
+            cell.transform.localScale);
 
         /// <summary>
         /// different face meshes (forward, up, right, back, down, left)
@@ -60,9 +66,6 @@ namespace LevelGeneration
 
         private void DrawFaceMesh(int i)
         {
-            if (faces == null || faces.Length < 6)
-                faces = MeshGeneration.GetFaceMeshes(ModelMesh, GetComponentInChildren<MeshFilter>(true).transform);
-
             if (faces[i].Mesh.vertexCount == 0)
             {
                 // No face mesh for this face --> everything fits --> show in GUI
@@ -101,12 +104,6 @@ namespace LevelGeneration
                 _mesh = mesh;
                 _vertices = mesh.vertices;
                 _triangles = mesh.triangles;
-
-                if (hash == 1)
-                {
-                    // 1 is reserved for "fits" with everything
-                    hash ^= 1000579;
-                }
 
                 this.hash = hash;
             }
