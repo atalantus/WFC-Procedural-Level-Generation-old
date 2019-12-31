@@ -72,12 +72,14 @@ namespace LevelGeneration
         /// </summary>
         /// <param name="faceFilter">Face filter</param>
         /// <param name="mustFit">When set to true filter all modules that do not fit the filter. When set to false it's the opposite.</param>
-        public void FilterCell(FaceFilter faceFilter, bool mustFit)
+        private bool FilterCell(FaceFilter faceFilter, bool mustFit)
         {
+            var cellState = new CellState(possibleModules, _isCellSet);
+
             Util.DebugLog($"FilterCell({faceFilter.ToString()}, {mustFit})",
                 LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
-            if (SolvedScore == 1) return;
+            if (SolvedScore == 1) return true;
 
             var removingModules = new List<Module>();
 
@@ -104,7 +106,13 @@ namespace LevelGeneration
             // Now remove filtered modules
             for (int i = 0; i < removingModules.Count; i++)
             {
-                RemoveModule(removingModules[i]);
+                var successState = RemoveModule(removingModules[i]);
+
+                if (!successState)
+                {
+                    ResetErrorState(cellState);
+                    return false;
+                }
             }
 
             if (SolvedScore == 1 && !_isCellSet)
@@ -113,18 +121,26 @@ namespace LevelGeneration
             }
             else if (SolvedScore <= 0)
             {
+                ResetErrorState(cellState);
+                return false;
+                /*
                 Debug.LogError(
                     $"Impossible Map! No fitting module could be found for {name}. solved Score: {SolvedScore}",
                     gameObject);
+                    */
             }
+
+            return true;
         }
 
         /// <summary>
         /// Checks if the removing module had the last face type of any kind for this cell and if so populates the changes to the affected neighbour cell.
         /// Than removes module from <see cref="possibleModules"/>
         /// </summary>
-        public void RemoveModule(Module module)
+        public bool RemoveModule(Module module)
         {
+            var cellState = new CellState(possibleModules, _isCellSet);
+
             Util.DebugLog($"{gameObject.name} | RemoveModule({module.moduleGO.name})",
                 LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
@@ -159,9 +175,17 @@ namespace LevelGeneration
 
                     // Populate face changes to neighbour cell
                     var faceFilter = new FaceFilter(j, faceId);
-                    neighbourCells[j].FilterCell(faceFilter, false);
+                    var successState = neighbourCells[j].FilterCell(faceFilter, false);
+
+                    if (!successState)
+                    {
+                        ResetErrorState(cellState);
+                        return false;
+                    }
                 }
             }
+
+            return true;
         }
 
         /// <summary>
@@ -208,6 +232,16 @@ namespace LevelGeneration
             _levelGenerator.orderedCells.UpdateItem(this);
         }
 
+        private void ResetErrorState(CellState cellState)
+        {
+            // Reset cell on error state and backtrack!
+            possibleModules = cellState.possibleModulesState;
+            _isCellSet = cellState.isCellSetState;
+
+            // Update item on the heap
+            _levelGenerator.orderedCells.UpdateItem(this);
+        }
+
         /// <summary>
         /// Compares two cells using their solved score
         /// TODO: Module heuristics
@@ -227,5 +261,20 @@ namespace LevelGeneration
         }
 
         #endregion
+
+        private struct CellState
+        {
+            public List<Module> possibleModulesState;
+
+            public bool isCellSetState;
+
+            // TODO: Save heap state?
+
+            public CellState(List<Module> possibleModulesState, bool isCellSetState)
+            {
+                this.possibleModulesState = new List<Module>(possibleModulesState);
+                this.isCellSetState = isCellSetState;
+            }
+        }
     }
 }

@@ -165,7 +165,8 @@ namespace LevelGeneration
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            Util.DebugLog($"Starting Wave-function-collapse algorithm with Seed {seed}", DebugOutputLevels.All, debugOutputLevel,
+            Util.DebugLog($"Starting Wave-function-collapse algorithm with Seed {seed}", DebugOutputLevels.All,
+                debugOutputLevel,
                 gameObject);
 
             var applyInitConstr = new Stopwatch();
@@ -216,7 +217,19 @@ namespace LevelGeneration
                 if (orderedCells.Count > 0)
                 {
                     var cell = orderedCells.GetFirst();
-                    cell.RemoveModule(cell.possibleModules[Random.Range(0, cell.possibleModules.Count)]);
+
+                    var c = 0;
+                    var mLength = cell.possibleModules.Count;
+                    var i = Random.Range(0, cell.possibleModules.Count);
+
+                    while (c < mLength)
+                    {
+                        i = ++i % mLength;
+
+                        if (cell.RemoveModule(cell.possibleModules[i])) break;
+
+                        ++c;
+                    }
                 }
                 else
                 {
