@@ -54,5 +54,10 @@ namespace LevelGeneration
             FaceIndex = faceIndex;
             FilterID = filterId;
         }
+
+        public override string ToString()
+        {
+            return $"({FaceIndex}, {FilterID})";
+        }
     }
 }

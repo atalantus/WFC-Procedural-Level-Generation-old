@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Debug = UnityEngine.Debug;
 using Random = UnityEngine.Random;
 
@@ -22,10 +24,17 @@ namespace LevelGeneration
         public static LevelGenerator Instance { get; private set; }
 
         /// <summary>
-        /// The modules
+        /// The general modules
         /// </summary>
-        [Header("Level Modules")] [Tooltip("The given set of Modules for this level generation")]
-        public List<Module> modules;
+        [Header("Level Modules")] [Tooltip("The generally given set of Modules for this level generation")]
+        public Module[] generalModules;
+
+        /// <summary>
+        /// Specifies only a subset of modules for specific cells
+        /// TODO
+        /// </summary>
+        [Tooltip("Specify a different set of modules for specific cells")]
+        public SpecialCell[] specialCells;
 
         /// <summary>
         /// When set to true the algorithm will run on a separate
@@ -104,8 +113,6 @@ namespace LevelGeneration
 
         #endregion
 
-        #region WFC-Methods
-
         private void Awake()
         {
             if (Instance == null)
@@ -122,6 +129,8 @@ namespace LevelGeneration
         protected virtual void OnAwake()
         {
         }
+
+        #region WFC-Methods
 
         /// <summary>
         /// Wave-function-collapse algorithm
@@ -143,6 +152,11 @@ namespace LevelGeneration
                 {
                     for (int k = 0; k < cells.GetLength(2); k++)
                     {
+                        // Populate cell's possibility space
+                        var specialCell = specialCells.FirstOrDefault(x => x.cellPos == new Vector3(i, j, k));
+                        cells[i, j, k].PopulateCell(specialCell != null ? specialCell.cellModules : generalModules);
+
+                        // Add cell to heap
                         orderedCells.Add(cells[i, j, k]);
                     }
                 }
@@ -184,7 +198,13 @@ namespace LevelGeneration
 
                     if (cell.SolvedScore == 1)
                     {
-                        orderedCells.RemoveFirst();
+                        if (cell._isCellSet)
+                            orderedCells.RemoveFirst();
+                        else
+                        {
+                            cell.SetModule(cell.possibleModules[0]);
+                            goto iteration_end;
+                        }
                     }
                     else
                     {
@@ -196,13 +216,15 @@ namespace LevelGeneration
                 if (orderedCells.Count > 0)
                 {
                     var cell = orderedCells.GetFirst();
-                    cell.RemoveModule(cell.possibleModulesIndices[Random.Range(0, cell.possibleModulesIndices.Count)]);
+                    cell.RemoveModule(cell.possibleModules[Random.Range(0, cell.possibleModules.Count)]);
                 }
                 else
                 {
                     // Finished
                     break;
                 }
+
+                iteration_end: ;
             }
 
             var finishLevelStpwtch = new Stopwatch();
@@ -249,8 +271,8 @@ namespace LevelGeneration
                 var rCell = cell.neighbourCells[2];
 
                 if (fCell != null)
-                    if (modules[cell.possibleModulesIndices[0]].faceConnections[0] !=
-                        modules[fCell.possibleModulesIndices[0]].faceConnections[3])
+                    if (cell.possibleModules[0].faceConnections[0] !=
+                        fCell.possibleModules[0].faceConnections[3])
                     {
                         isValid = false;
                         Debug.LogError(string.Format(debugStr + " ({0}, {1}, {3})</color>", x, y, z, z + 1));
@@ -258,8 +280,8 @@ namespace LevelGeneration
 
 
                 if (uCell != null)
-                    if (modules[cell.possibleModulesIndices[0]].faceConnections[1] !=
-                        modules[uCell.possibleModulesIndices[0]].faceConnections[4])
+                    if (cell.possibleModules[0].faceConnections[1] !=
+                        uCell.possibleModules[0].faceConnections[4])
                     {
                         isValid = false;
                         Debug.LogError(string.Format(debugStr + " ({0}, {3}, {2})</color>", x, y, z, y + 1));
@@ -267,8 +289,8 @@ namespace LevelGeneration
 
 
                 if (rCell != null)
-                    if (modules[cell.possibleModulesIndices[0]].faceConnections[2] !=
-                        modules[rCell.possibleModulesIndices[0]].faceConnections[5])
+                    if (cell.possibleModules[0].faceConnections[2] !=
+                        rCell.possibleModules[0].faceConnections[5])
                     {
                         isValid = false;
                         Debug.LogError(string.Format(debugStr + " ({3}, {1}, {2})</color>", x, y, z, x + 1));
@@ -299,8 +321,6 @@ namespace LevelGeneration
         /// </summary>
         public void GenerateGrid()
         {
-            Debug.Log("Generate Grid");
-
             var cellScale = cellPrefab.transform.localScale;
 
             if (dimensions.x > 0 && dimensions.y > 0 && dimensions.z > 0)
@@ -402,7 +422,9 @@ namespace LevelGeneration
         /// </summary>
         public void RemoveGrid()
         {
-            foreach (Transform child in gameObject.transform)
+            var children = transform.Cast<Transform>().ToList();
+
+            foreach (var child in children)
             {
 #if UNITY_EDITOR
                 DestroyImmediate(child.gameObject);
@@ -410,10 +432,22 @@ namespace LevelGeneration
                         Destroy(child.gameObject);
 #endif
             }
-
-            Debug.Log("Removed Grid");
         }
 
         #endregion
+    }
+
+    [Serializable]
+    public class SpecialCell
+    {
+        /// <summary>
+        /// The cell position
+        /// </summary>
+        public Vector3 cellPos;
+
+        /// <summary>
+        /// The subset of possible modules for this cell
+        /// </summary>
+        public Module[] cellModules;
     }
 }

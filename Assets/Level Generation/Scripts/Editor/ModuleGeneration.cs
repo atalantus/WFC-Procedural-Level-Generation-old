@@ -300,7 +300,10 @@ namespace LevelGeneration
                         int n;
 
                         if (j % 3 == 1 || i == 0)
+                        {
+                            // TODO: Recalculate rotated top/bottom face hash code
                             n = j;
+                        }
                         else
                             n = (j + i + (i == 3 ? 2 : 1)) % 6;
 

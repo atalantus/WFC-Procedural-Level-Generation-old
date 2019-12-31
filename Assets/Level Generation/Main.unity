@@ -149,13 +149,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f90b9bd44867465ca915114bf2d9e42b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  modules:
+  generalModules:
   - {fileID: 11400000, guid: a7fac452af74ad24b82165949809b52e, type: 2}
   - {fileID: 11400000, guid: a710f97523dc15042b54c93cb6ba3ca0, type: 2}
+  specialCells:
+  - cellPos: {x: 0, y: 0, z: 0}
+    cellModules:
+    - {fileID: 11400000, guid: a7fac452af74ad24b82165949809b52e, type: 2}
   runInExtraThread: 1
   validateCellAdjacency: 1
   debugOutputLevel: 2
-  seed: 105453968
+  seed: -1
   dimensions: {x: 2, y: 1, z: 1}
   cellPrefab: {fileID: 4559502570846079236, guid: cfe4d760fa6faa34cb340be1a13d380b,
     type: 3}
