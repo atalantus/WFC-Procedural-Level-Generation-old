@@ -165,7 +165,7 @@ namespace LevelGeneration
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            Util.DebugLog("Starting Wave-function-collapse algorithm", DebugOutputLevels.All, debugOutputLevel,
+            Util.DebugLog($"Starting Wave-function-collapse algorithm with Seed {seed}", DebugOutputLevels.All, debugOutputLevel,
                 gameObject);
 
             var applyInitConstr = new Stopwatch();
