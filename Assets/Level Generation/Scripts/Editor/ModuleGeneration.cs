@@ -187,10 +187,7 @@ namespace LevelGeneration
 
             // Assign asset values
             moduleAsset.moduleGO = prefab;
-            for (int j = 0; j < moduleAsset.faceConnections.Length; j++)
-            {
-                moduleAsset.faceConnections[j] = 0;
-            }
+            for (var j = 0; j < moduleAsset.faceConnections.Length; j++) moduleAsset.faceConnections[j] = 0;
 
             // Mark asset as dirty
             EditorUtility.SetDirty(moduleAsset);
@@ -209,7 +206,7 @@ namespace LevelGeneration
                 ModuleVisualizer.ModuleFace[] faces = null;
                 int[] meshpartHashes = null;
 
-                for (int i = 0; i < 4; i++)
+                for (var i = 0; i < 4; i++)
                 {
                     var moduleName = rotation == Vector3.zero
                         ? modelSources[_i].name
@@ -235,10 +232,7 @@ namespace LevelGeneration
                         meshpartHashes =
                             FaceMeshUtil.GetMeshpartHashes(modelMesh, meshFilter.transform);
 
-                        for (int j = 0; j < faces.Length; j++)
-                        {
-                            ModulesInfo.AddFace(false, faces[j].GetHashCode());
-                        }
+                        for (var j = 0; j < faces.Length; j++) ModulesInfo.AddFace(false, faces[j].GetHashCode());
 
                         // Create master prefab
                         masterPrefab = PrefabUtility.InstantiatePrefab(modelSources[_i]) as GameObject;
@@ -273,10 +267,8 @@ namespace LevelGeneration
                         }
 
                         if (i == 3 && masterVisualizer.moduleAssets.Count <= 2)
-                        {
                             // 270° rotated version would not differ 90° variant
                             continue;
-                        }
                     }
 
                     var moduleAsset = CreateInstance<Module>();
@@ -292,17 +284,15 @@ namespace LevelGeneration
 
                     // Assign asset values
                     moduleAsset.moduleGO = prefabVariant;
-                    for (int j = 0; j < moduleAsset.faceConnections.Length; j++)
+                    for (var j = 0; j < moduleAsset.faceConnections.Length; j++)
                     {
                         if (faces == null) return;
 
                         int n;
 
                         if (j % 3 == 1 || i == 0)
-                        {
                             // TODO: Recalculate rotated top/bottom face hash code
                             n = j;
-                        }
                         else
                             n = (j + i + (i == 3 ? 2 : 1)) % 6;
 
@@ -444,10 +434,7 @@ namespace LevelGeneration
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Toggle all", GUILayout.Width(100)))
-            {
-                Debug.Log("Toggle all");
-            }
+            if (GUILayout.Button("Toggle all", GUILayout.Width(100))) Debug.Log("Toggle all");
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -460,9 +447,7 @@ namespace LevelGeneration
                     GUILayout.Height(200));
 
                 foreach (var faceConnection in ModulesInfo.generatedConnections)
-                {
                     GUILayout.Toggle(false, $"{faceConnection.Key} ({faceConnection.Value})");
-                }
 
                 GUILayout.EndScrollView();
             }
@@ -486,9 +471,7 @@ namespace LevelGeneration
             if (EditorUtility.DisplayCancelableProgressBar("Generating WFC-Modules",
                 _progressBarInfo,
                 (float) _i / modelSources.Length))
-            {
                 _generating = false;
-            }
         }
 
         #endregion

@@ -21,7 +21,7 @@ namespace LevelGeneration.Util
         {
             keys.Clear();
             values.Clear();
-            foreach (KeyValuePair<TKey, TValue> pair in this)
+            foreach (var pair in this)
             {
                 keys.Add(pair.Key);
                 values.Add(pair.Value);
@@ -31,14 +31,14 @@ namespace LevelGeneration.Util
         // load dictionary from lists
         public void OnAfterDeserialize()
         {
-            this.Clear();
+            Clear();
 
             if (keys.Count != values.Count)
-                throw new System.Exception(string.Format(
+                throw new Exception(string.Format(
                     "there are {0} keys and {1} values after deserialization. Make sure that both key and value types are serializable."));
 
-            for (int i = 0; i < keys.Count; i++)
-                this.Add(keys[i], values[i]);
+            for (var i = 0; i < keys.Count; i++)
+                Add(keys[i], values[i]);
         }
     }
 }

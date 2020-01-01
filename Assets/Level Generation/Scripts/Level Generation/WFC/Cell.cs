@@ -62,10 +62,7 @@ namespace LevelGeneration.WFC
             if (possibleModules.Length == 0) Debug.LogError($"Cell {name} was populated with zero possible modules!");
             this.possibleModules = new List<Module>(possibleModules.Length);
 
-            for (int i = 0; i < possibleModules.Length; i++)
-            {
-                this.possibleModules.Add(possibleModules[i]);
-            }
+            for (var i = 0; i < possibleModules.Length; i++) this.possibleModules.Add(possibleModules[i]);
         }
 
         /// <summary>
@@ -85,7 +82,7 @@ namespace LevelGeneration.WFC
             var removingModules = new List<Module>();
 
             // Filter possible Modules list for the given filter
-            for (int i = 0; i < possibleModules.Count; i++)
+            for (var i = 0; i < possibleModules.Count; i++)
             {
                 var module = possibleModules[i];
 
@@ -98,14 +95,12 @@ namespace LevelGeneration.WFC
                 if (mustFit) isImpossible = !isImpossible;
 
                 if (isImpossible)
-                {
                     // Remove module
                     removingModules.Add(possibleModules[i]);
-                }
             }
 
             // Now remove filtered modules
-            for (int i = 0; i < removingModules.Count; i++)
+            for (var i = 0; i < removingModules.Count; i++)
             {
                 var successState = RemoveModule(removingModules[i]);
 
@@ -151,7 +146,7 @@ namespace LevelGeneration.WFC
             // Update item on the heap
             _levelGenerator.orderedCells.UpdateItem(this);
 
-            for (int j = 0; j < neighbourCells.Length; j++)
+            for (var j = 0; j < neighbourCells.Length; j++)
             {
                 // Only check if cell actually has a neighbour on this face
                 if (neighbourCells[j] == null) continue;
@@ -160,14 +155,12 @@ namespace LevelGeneration.WFC
                 var lastWithFaceId = true;
 
                 // Search in other possible modules for the same face id on the same face
-                for (int i = 0; i < possibleModules.Count; i++)
-                {
+                for (var i = 0; i < possibleModules.Count; i++)
                     if (possibleModules[i].faceConnections[j] == faceId)
                     {
                         lastWithFaceId = false;
                         break;
                     }
-                }
 
                 if (lastWithFaceId)
                 {
@@ -210,7 +203,7 @@ namespace LevelGeneration.WFC
             _isCellSet = true;
 
             // Propagate changes to neighbours
-            for (int i = 0; i < neighbourCells.Length; i++)
+            for (var i = 0; i < neighbourCells.Length; i++)
             {
                 if (neighbourCells[i] == null) continue;
 

@@ -145,20 +145,16 @@ namespace LevelGeneration.WFC
             // Instantiate cells heap
             orderedCells = new Heap<Cell>(cells.GetLength(0) * cells.GetLength(1) * cells.GetLength(2));
 
-            for (int i = 0; i < cells.GetLength(0); i++)
+            for (var i = 0; i < cells.GetLength(0); i++)
+            for (var j = 0; j < cells.GetLength(1); j++)
+            for (var k = 0; k < cells.GetLength(2); k++)
             {
-                for (int j = 0; j < cells.GetLength(1); j++)
-                {
-                    for (int k = 0; k < cells.GetLength(2); k++)
-                    {
-                        // Populate cell's possibility space
-                        var specialCell = specialCells.FirstOrDefault(x => x.cellPos == new Vector3(i, j, k));
-                        cells[i, j, k].PopulateCell(specialCell != null ? specialCell.cellModules : generalModules);
+                // Populate cell's possibility space
+                var specialCell = specialCells.FirstOrDefault(x => x.cellPos == new Vector3(i, j, k));
+                cells[i, j, k].PopulateCell(specialCell != null ? specialCell.cellModules : generalModules);
 
-                        // Add cell to heap
-                        orderedCells.Add(cells[i, j, k]);
-                    }
-                }
+                // Add cell to heap
+                orderedCells.Add(cells[i, j, k]);
             }
 
             var stopwatch = new Stopwatch();
@@ -190,16 +186,16 @@ namespace LevelGeneration.WFC
                     var cell = orderedCells.GetFirst();
 
                     if (cell.SolvedScore <= 0)
-                    {
                         Debug.LogError(
                             $"Impossible Map! No fitting module could be found for {cell}. solved Score: {cell.SolvedScore}",
                             gameObject);
-                    }
 
                     if (cell.SolvedScore == 1)
                     {
                         if (cell._isCellSet)
+                        {
                             orderedCells.RemoveFirst();
+                        }
                         else
                         {
                             cell.SetModule(cell.possibleModules[0]);
@@ -273,9 +269,9 @@ namespace LevelGeneration.WFC
             const string debugStr = "<color=red>CheckGeneratedLevel | Cell ({0}, {1}, {2}) not adjacent to";
             var isValid = true;
 
-            for (int x = 0; x < cells.GetLength(0); x++)
-            for (int y = 0; y < cells.GetLength(1); y++)
-            for (int z = 0; z < cells.GetLength(2); z++)
+            for (var x = 0; x < cells.GetLength(0); x++)
+            for (var y = 0; y < cells.GetLength(1); y++)
+            for (var z = 0; z < cells.GetLength(2); z++)
             {
                 var cell = cells[x, y, z];
                 var fCell = cell.neighbourCells[0];
@@ -347,9 +343,9 @@ namespace LevelGeneration.WFC
                     origin.z - dimensions.z * cellScale.z / 2f + cellScale.z / 2f
                 );
 
-                for (int x = 0; x < dimensions.x; x++)
-                for (int y = 0; y < dimensions.y; y++)
-                for (int z = 0; z < dimensions.z; z++)
+                for (var x = 0; x < dimensions.x; x++)
+                for (var y = 0; y < dimensions.y; y++)
+                for (var z = 0; z < dimensions.z; z++)
                 {
                     var curPos = new Vector3(
                         bottomLeft.x + x * cellScale.x,
@@ -365,12 +361,12 @@ namespace LevelGeneration.WFC
                 }
 
                 // Assign neighbours for every cell
-                for (int x = 0; x < dimensions.x; x++)
-                for (int y = 0; y < dimensions.y; y++)
-                for (int z = 0; z < dimensions.z; z++)
+                for (var x = 0; x < dimensions.x; x++)
+                for (var y = 0; y < dimensions.y; y++)
+                for (var z = 0; z < dimensions.z; z++)
                 {
                     var cell = cells[x, y, z];
-                    for (int i = 0; i < 6; i++)
+                    for (var i = 0; i < 6; i++)
                     {
                         int nx = x, ny = y, nz = z;
 
@@ -399,14 +395,10 @@ namespace LevelGeneration.WFC
 
                         if (nx < 0 || ny < 0 || nz < 0 || nx > dimensions.x - 1 || ny > dimensions.y - 1 ||
                             nz > dimensions.z - 1)
-                        {
                             // Outside of grid`s dimensions
                             cell.neighbourCells[i] = null;
-                        }
                         else
-                        {
                             cell.neighbourCells[i] = cells[nx, ny, nz];
-                        }
                     }
                 }
             }

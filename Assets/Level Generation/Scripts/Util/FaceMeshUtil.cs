@@ -34,13 +34,10 @@ namespace LevelGeneration.Util
                 cellScale);
 
             var faceMeshes = new FaceMesh[6];
-            for (int i = 0; i < faceMeshes.Length; i++)
-            {
-                faceMeshes[i] = new FaceMesh();
-            }
+            for (var i = 0; i < faceMeshes.Length; i++) faceMeshes[i] = new FaceMesh();
 
             // iterate over each triangle of the mesh
-            for (int i = 0; i < mTriangles.Length;)
+            for (var i = 0; i < mTriangles.Length;)
             {
                 var indices = new[] {mTriangles[i++], mTriangles[i++], mTriangles[i++]};
                 var vertices = new[] {mVertices[indices[0]], mVertices[indices[1]], mVertices[indices[2]]};
@@ -49,7 +46,7 @@ namespace LevelGeneration.Util
                 var triangleNormal = (normals[0] + normals[1] + normals[2]) / 3;
 
                 // apply mesh's local scale and local position to vertices
-                for (int j = 0; j < vertices.Length; j++)
+                for (var j = 0; j < vertices.Length; j++)
                 {
                     vertices[j] = new Vector3(
                         vertices[j].x * mScale.x,
@@ -66,15 +63,13 @@ namespace LevelGeneration.Util
                 if (Mathf.Abs(transformCenterToTriCenter.x) < cBounds.extents.x - lossOfFractionThreshold &&
                     Mathf.Abs(transformCenterToTriCenter.y) < cBounds.extents.y - lossOfFractionThreshold &&
                     Mathf.Abs(transformCenterToTriCenter.z) < cBounds.extents.z - lossOfFractionThreshold)
-                {
                     continue;
-                }
 
                 SortTriangle(triangleNormal, vertices, faceMeshes);
             }
 
             // Apply face meshes
-            for (int i = 0; i < faces.Length; i++)
+            for (var i = 0; i < faces.Length; i++)
             {
                 faceMeshes[i].mesh.GenerateFaceMesh(faceMeshes[i].vertices, faceMeshes[i].triangles);
 
@@ -102,13 +97,10 @@ namespace LevelGeneration.Util
             var meshpartHashes = new int[6];
 
             var faceMeshes = new FaceMesh[6];
-            for (int i = 0; i < faceMeshes.Length; i++)
-            {
-                faceMeshes[i] = new FaceMesh();
-            }
+            for (var i = 0; i < faceMeshes.Length; i++) faceMeshes[i] = new FaceMesh();
 
             // iterate through all triangles in the mesh
-            for (int i = 0; i < mTriangles.Length;)
+            for (var i = 0; i < mTriangles.Length;)
             {
                 var indices = new[] {mTriangles[i++], mTriangles[i++], mTriangles[i++]};
                 var vertices = new[] {mVertices[indices[0]], mVertices[indices[1]], mVertices[indices[2]]};
@@ -117,7 +109,7 @@ namespace LevelGeneration.Util
                 var triangleNormal = (normals[0] + normals[1] + normals[2]) / 3;
 
                 // apply local scale to vertices
-                for (int j = 0; j < vertices.Length; j++)
+                for (var j = 0; j < vertices.Length; j++)
                 {
                     vertices[j] = new Vector3(
                         vertices[j].x * mScale.x,
@@ -131,7 +123,7 @@ namespace LevelGeneration.Util
             }
 
             // Apply face meshes
-            for (int i = 0; i < meshpartHashes.Length; i++)
+            for (var i = 0; i < meshpartHashes.Length; i++)
             {
                 faceMeshes[i].mesh.GenerateFaceMesh(faceMeshes[i].vertices, faceMeshes[i].triangles);
 
@@ -150,7 +142,7 @@ namespace LevelGeneration.Util
         /// <param name="faceMeshes">The array of <see cref="FaceMesh"/> objects</param>
         private static void SortTriangle(Vector3 triangleNormal, Vector3[] vertices, FaceMesh[] faceMeshes)
         {
-            for (int j = 0; j < FaceNormals.Length; j++)
+            for (var j = 0; j < FaceNormals.Length; j++)
             {
                 var angle = Vector3.Angle(FaceNormals[j], triangleNormal);
 
@@ -159,8 +151,7 @@ namespace LevelGeneration.Util
                 {
                     var actualVertIndices = new int[3];
 
-                    for (int k = 0; k < vertices.Length; k++)
-                    {
+                    for (var k = 0; k < vertices.Length; k++)
                         if (faceMeshes[j].vertices.ContainsKey(vertices[k]))
                         {
                             // vertex already exists --> get index
@@ -173,7 +164,6 @@ namespace LevelGeneration.Util
                             faceMeshes[j].vertices.Add(vertices[k], count);
                             actualVertIndices[k] = count;
                         }
-                    }
 
                     // add new triangle
                     faceMeshes[j].triangles.AddRange(new[]
@@ -189,7 +179,7 @@ namespace LevelGeneration.Util
             var verticesCount = vertices.Count;
             var verticesArr = new Vector3[verticesCount];
 
-            for (int j = 0; j < verticesCount; j++)
+            for (var j = 0; j < verticesCount; j++)
             {
                 var v = vertices.RemoveFirst().Key;
                 verticesArr[j] = v;
@@ -219,13 +209,9 @@ namespace LevelGeneration.Util
         private static void Vector3AlignForwardAxis(this ref Vector3 dir, Vector3 curAxis)
         {
             if (curAxis == Vector3.up || curAxis == Vector3.down)
-            {
                 dir = Quaternion.Euler(90 * curAxis.y, 0, 0) * dir;
-            }
             else if (curAxis == Vector3.left || curAxis == Vector3.right)
-            {
                 dir = Quaternion.Euler(0, 90 * curAxis.x, 0) * dir;
-            }
         }
 
         private static int GenerateVector3Hash(this Vector3 vector)

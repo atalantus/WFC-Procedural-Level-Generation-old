@@ -6,11 +6,11 @@ using UnityEngine;
 namespace LevelGeneration
 {
     [CustomEditor(typeof(ModuleVisualizer))]
-    class ButtonExampleEditor : Editor
+    public class ModuleVisualizerEditor : Editor
     {
         private readonly string[] _faceNames = {"Forward", "Up", "Right", "Back", "Down", "Left"};
 
-        void OnSceneGUI()
+        private void OnSceneGUI()
         {
             var moduleVisualizer = (ModuleVisualizer) target;
 
@@ -73,19 +73,17 @@ namespace LevelGeneration
             GUILayout.Space(10);
 
             if (GUILayout.Button("Regenerate faces"))
-            {
                 // TODO: Update ModuleInfo! (if necessary)
                 moduleVisualizer.faces =
                     FaceMeshUtil.GetFaceMeshes(moduleVisualizer.ModelMesh,
                         moduleVisualizer.GetComponentInChildren<MeshFilter>(true).transform,
                         moduleVisualizer.cell == null ? Vector3.one : moduleVisualizer.cell.transform.localScale);
-            }
         }
 
         private void ShowFaceHandles(ModuleVisualizer moduleVisualizer)
         {
             var bounds = moduleVisualizer.ModuleBounds;
-            for (int i = 0; i < 6; i++)
+            for (var i = 0; i < 6; i++)
             {
                 var offset = new Vector3(
                     i % 3 == 2 ? bounds.extents.x : 0,
@@ -93,15 +91,13 @@ namespace LevelGeneration
                     i % 3 == 0 ? bounds.extents.z : 0
                 );
 
-                var size = Mathf.Max((Mathf.Min(bounds.extents[i % 3], bounds.extents[(i + 1) % 3]) / 2), 0.1f);
+                var size = Mathf.Max(Mathf.Min(bounds.extents[i % 3], bounds.extents[(i + 1) % 3]) / 2, 0.1f);
 
                 var pos = bounds.center + (i > 2 ? -offset : offset);
 
                 if (Handles.Button(pos, Quaternion.Euler(i % 3 == 1 ? 90 : 0, i % 3 == 2 ? 90 : 0, 0), size, size,
                     Handles.RectangleHandleCap))
-                {
                     moduleVisualizer.SelectMeshFace(i);
-                }
             }
         }
     }

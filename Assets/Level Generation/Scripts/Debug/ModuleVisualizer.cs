@@ -67,10 +67,7 @@ namespace LevelGeneration
                 for (var i = 0; i < faces.Length; i++)
                 {
                     var moduleFace = faces[i];
-                    if (moduleFace.GetHashCode() == face.GetHashCode())
-                    {
-                        _shownFaceMeshes.Add(i);
-                    }
+                    if (moduleFace.GetHashCode() == face.GetHashCode()) _shownFaceMeshes.Add(i);
                 }
             };
 
@@ -88,10 +85,8 @@ namespace LevelGeneration
             foreach (var i in _shownFaceMeshes)
             {
                 if (faces[i].Mesh.vertexCount == 0)
-                {
                     // No face mesh for this face --> everything fits --> show in GUI
                     return;
-                }
 
                 Gizmos.color = i == selectedFaceMesh ? Color.red : Color.blue;
                 Gizmos.DrawWireMesh(faces[i].Mesh, transform.position, transform.rotation, Vector3.one);

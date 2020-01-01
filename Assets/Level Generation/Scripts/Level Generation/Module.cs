@@ -13,7 +13,7 @@ namespace LevelGeneration
         /// The module`s game object
         /// </summary>
         public GameObject moduleGO;
-        
+
         /// <summary>
         /// The module`s face connections starting with the face facing behind (forward, up, right, back, down, left)
         /// </summary>
@@ -43,7 +43,7 @@ namespace LevelGeneration
         /// The face`s index (See <see cref="Module.faceConnections"/>)
         /// </summary>
         public int FaceIndex;
-        
+
         /// <summary>
         /// The face type that gets filtered out
         /// </summary>

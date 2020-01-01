@@ -18,10 +18,7 @@ namespace LevelGeneration.Util
 
             set
             {
-                if (_cacheMap.ContainsKey(c))
-                {
-                    _linkedList.Remove(_cacheMap[c]);
-                }
+                if (_cacheMap.ContainsKey(c)) _linkedList.Remove(_cacheMap[c]);
 
                 _cacheMap[c] = new LinkedListNode<LinkedHashMapItem<K, V>>(new LinkedHashMapItem<K, V>(c, value));
                 _linkedList.AddLast(_cacheMap[c]);

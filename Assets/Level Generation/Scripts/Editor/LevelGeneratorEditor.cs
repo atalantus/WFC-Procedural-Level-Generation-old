@@ -19,9 +19,7 @@ namespace LevelGeneration
             GUILayout.FlexibleSpace();
 
             if (GUILayout.Button("Generate Level", GUILayout.Width(175), GUILayout.Height(25)))
-            {
                 levelGenerator.GenerateLevel();
-            }
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
