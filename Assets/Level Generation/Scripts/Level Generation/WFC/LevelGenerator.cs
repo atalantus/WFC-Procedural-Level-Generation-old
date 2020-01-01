@@ -135,12 +135,12 @@ namespace LevelGeneration.WFC
         /// Wave-function-collapse algorithm
         /// TODO: Could be multithreaded to increase performance
         /// </summary>
-        /// <param name="cells">The grid`s cells</param>
-        /// <param name="seed">RNG seed</param>
-        public void GenerateLevelWFC(ref Cell[,,] cells, int seed)
+        public void GenerateLevelWFC()
         {
+            var wfcSeed = seed != -1 ? seed : Environment.TickCount;
+
             // Set RNG seed
-            Random.InitState(seed);
+            Random.InitState(wfcSeed);
 
             // Instantiate cells heap
             orderedCells = new Heap<Cell>(cells.GetLength(0) * cells.GetLength(1) * cells.GetLength(2));
@@ -170,7 +170,7 @@ namespace LevelGeneration.WFC
             DebugLogger.Log("Applying initial constraints", DebugOutputLevels.All, debugOutputLevel, gameObject);
 
             // Make sure the level fits our initial constraints
-            ApplyInitialConstraints(ref cells);
+            ApplyInitialConstraints();
 
             applyInitConstr.Stop();
 
@@ -225,6 +225,8 @@ namespace LevelGeneration.WFC
 
                         ++c;
                     }
+
+                    Debug.LogError("Couldn't backtrack far enough!");
                 }
                 else
                 {
@@ -238,10 +240,10 @@ namespace LevelGeneration.WFC
             var finishLevelStpwtch = new Stopwatch();
             finishLevelStpwtch.Start();
 
-            DebugLogger.Log("Applying FinishLevel", DebugOutputLevels.All, debugOutputLevel, gameObject);
+            DebugLogger.Log("Applying final constraints", DebugOutputLevels.All, debugOutputLevel, gameObject);
 
             // Add end constraints
-            FinishLevel(ref cells);
+            ApplyFinalConstraints();
 
             finishLevelStpwtch.Stop();
 
@@ -250,21 +252,20 @@ namespace LevelGeneration.WFC
             DebugLogger.Log($"Applying initial constraints took {applyInitConstr.Elapsed.TotalMilliseconds}ms",
                 DebugOutputLevels.Runtime, debugOutputLevel, gameObject);
             DebugLogger.Log(
-                $"Applying finishing level took {finishLevelStpwtch.Elapsed.TotalMilliseconds}ms",
+                $"Applying final constraints took {finishLevelStpwtch.Elapsed.TotalMilliseconds}ms",
                 DebugOutputLevels.Runtime, debugOutputLevel, gameObject);
             DebugLogger.Log(
                 $"Complete Wave-function-collapse algorithm finished in {stopwatch.Elapsed.TotalMilliseconds}ms (Seed: {seed})",
                 DebugOutputLevels.Runtime, debugOutputLevel, gameObject);
 
-            if (validateCellAdjacency) CheckGeneratedLevel(ref cells);
+            if (validateCellAdjacency) CheckGeneratedLevel();
         }
 
         /// <summary>
         /// Checks if the cells of the generated level matches with each other.
         /// </summary>
-        /// <param name="cells">The grid`s cells</param>
         /// <returns>True if all of adjacent modules are valid</returns>
-        public bool CheckGeneratedLevel(ref Cell[,,] cells)
+        public bool CheckGeneratedLevel()
         {
             const string debugStr = "<color=red>CheckGeneratedLevel | Cell ({0}, {1}, {2}) not adjacent to";
             var isValid = true;
@@ -312,13 +313,13 @@ namespace LevelGeneration.WFC
         /// Resolve all initial constraints
         /// </summary>
         /// <param name="cells">The grid`s cells</param>
-        protected abstract void ApplyInitialConstraints(ref Cell[,,] cells);
+        protected abstract void ApplyInitialConstraints();
 
         /// <summary>
-        /// Apply finishing touches to the level
+        /// Resolve all final constraints
         /// </summary>
         /// <param name="cells">The grid`s cells</param>
-        protected abstract void FinishLevel(ref Cell[,,] cells);
+        protected abstract void ApplyFinalConstraints();
 
         #endregion
 
@@ -418,7 +419,7 @@ namespace LevelGeneration.WFC
             GenerateGrid();
 
             // Wave-function-collapse algorithm
-            GenerateLevelWFC(ref cells, seed != -1 ? seed : Environment.TickCount);
+            GenerateLevelWFC();
         }
 
         /// <summary>

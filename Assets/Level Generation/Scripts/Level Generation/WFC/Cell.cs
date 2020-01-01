@@ -69,7 +69,7 @@ namespace LevelGeneration.WFC
         /// </summary>
         /// <param name="faceFilter">Face filter</param>
         /// <param name="mustFit">When set to true filter all modules that do not fit the filter. When set to false it's the opposite.</param>
-        private bool FilterCell(FaceFilter faceFilter, bool mustFit)
+        public bool FilterCell(FaceFilter faceFilter, bool mustFit)
         {
             var cellState = new CellState(possibleModules, _isCellSet);
 
@@ -167,7 +167,7 @@ namespace LevelGeneration.WFC
                         LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
                     // Populate face changes to neighbour cell
-                    var faceFilter = new FaceFilter(j, faceId);
+                    var faceFilter = new FaceFilter((FaceFilter.FaceDirections) j, faceId);
                     var successState = neighbourCells[j].FilterCell(faceFilter, false);
 
                     if (!successState)
@@ -208,7 +208,7 @@ namespace LevelGeneration.WFC
 
                 // This face id was chosen from this face
                 // Populate face changes to neighbour cell
-                var faceFilter = new FaceFilter(i, module.faceConnections[i]);
+                var faceFilter = new FaceFilter((FaceFilter.FaceDirections) i, module.faceConnections[i]);
                 neighbourCells[i].FilterCell(faceFilter, true);
             }
         }

@@ -5,7 +5,7 @@ namespace LevelGeneration
     /// <summary>
     /// Scriptable Object asset for one specific module
     /// </summary>
-    [CreateAssetMenu(fileName = "New Module", menuName = "Map Generation/Module")]
+    [CreateAssetMenu(fileName = "New Module", menuName = "WFC Level Generation/Module")]
     public class Module : ScriptableObject
     {
         /// <summary>
@@ -26,10 +26,10 @@ namespace LevelGeneration
         public bool CheckModule(FaceFilter filter)
         {
             // Get receiving face index of this module
-            var face = (filter.FaceIndex + 3) % 6;
+            var face = ((int) filter.faceDirection + 3) % 6;
 
             // Check if module matches a given filter
-            return faceConnections[face] == filter.FilterID;
+            return faceConnections[face] == filter.filterId;
         }
     }
 
@@ -39,24 +39,37 @@ namespace LevelGeneration
     public struct FaceFilter
     {
         /// <summary>
-        /// The face`s index (See <see cref="Module.faceConnections"/>)
+        /// The face direction
         /// </summary>
-        public int FaceIndex;
+        public FaceDirections faceDirection;
+
+        /// <summary>
+        /// The face directions
+        /// </summary>
+        public enum FaceDirections
+        {
+            Forward = 0,
+            Up = 1,
+            Right = 2,
+            Back = 3,
+            Down = 4,
+            Left = 5
+        }
 
         /// <summary>
         /// The face type that gets filtered out
         /// </summary>
-        public int FilterID;
+        public int filterId;
 
-        public FaceFilter(int faceIndex, int filterId)
+        public FaceFilter(FaceDirections faceDirection, int filterId)
         {
-            FaceIndex = faceIndex;
-            FilterID = filterId;
+            this.faceDirection = faceDirection;
+            this.filterId = filterId;
         }
 
         public override string ToString()
         {
-            return $"({FaceIndex}, {FilterID})";
+            return $"({faceDirection.ToString()}, {filterId})";
         }
     }
 }
