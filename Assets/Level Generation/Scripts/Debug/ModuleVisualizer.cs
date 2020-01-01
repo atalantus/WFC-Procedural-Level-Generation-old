@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using LevelGeneration;
+using LevelGeneration.WFC;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.PlayerLoop;
@@ -22,12 +23,11 @@ namespace LevelGeneration
         private Renderer _renderer;
         public int selectedFaceMesh = -1;
         private List<int> _shownFaceMeshes;
-        public Vector3 moduleBottomCenterOffset = Vector3.zero;
         public List<Module> moduleAssets;
         public Cell cell;
 
         public Bounds ModuleBounds => new Bounds(
-            transform.position + moduleBottomCenterOffset + new Vector3(0, cell.transform.localScale.y / 2, 0),
+            transform.position + new Vector3(0, cell.transform.localScale.y / 2, 0),
             cell.transform.localScale);
 
         /// <summary>

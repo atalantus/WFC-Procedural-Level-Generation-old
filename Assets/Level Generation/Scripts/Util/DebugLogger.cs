@@ -1,19 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using LevelGeneration.WFC;
 using UnityEngine;
 
-namespace LevelGeneration
+namespace LevelGeneration.Util
 {
-    public static class Util
+    public static class DebugLogger
     {
-        public static void PopulateCollection<T>(this IList<T> coll) where T : class, new()
-        {
-            for (int i = 0; i < coll.Count; i++)
-            {
-                coll[i] = new T();
-            }
-        }
-
-        public static void DebugLog(string msg, LevelGenerator.DebugOutputLevels msgLevel,
+        public static void Log(string msg, LevelGenerator.DebugOutputLevels msgLevel,
             LevelGenerator.DebugOutputLevels setLevel, GameObject caller)
         {
             if (msgLevel > setLevel) return;

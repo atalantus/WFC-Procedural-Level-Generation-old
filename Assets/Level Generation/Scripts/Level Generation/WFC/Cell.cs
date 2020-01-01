@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using LevelGeneration.Util;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace LevelGeneration
+namespace LevelGeneration.WFC
 {
     /// <summary>
     /// Acts as placeholder for the modules possibility space.
@@ -76,7 +77,7 @@ namespace LevelGeneration
         {
             var cellState = new CellState(possibleModules, _isCellSet);
 
-            Util.DebugLog($"FilterCell({faceFilter.ToString()}, {mustFit})",
+            DebugLogger.Log($"FilterCell({faceFilter.ToString()}, {mustFit})",
                 LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
             if (SolvedScore == 1) return true;
@@ -88,7 +89,7 @@ namespace LevelGeneration
             {
                 var module = possibleModules[i];
 
-                Util.DebugLog(
+                DebugLogger.Log(
                     $"Checking {module.moduleGO.name} for face filter {faceFilter.ToString()} with \"mustFit\": {mustFit}",
                     LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
@@ -141,7 +142,7 @@ namespace LevelGeneration
         {
             var cellState = new CellState(possibleModules, _isCellSet);
 
-            Util.DebugLog($"{gameObject.name} | RemoveModule({module.moduleGO.name})",
+            DebugLogger.Log($"{gameObject.name} | RemoveModule({module.moduleGO.name})",
                 LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
             // Remove module from possibility space
@@ -170,7 +171,7 @@ namespace LevelGeneration
 
                 if (lastWithFaceId)
                 {
-                    Util.DebugLog($"{gameObject.name} | Last face({j}, {faceId.ToString()})",
+                    DebugLogger.Log($"{gameObject.name} | Last face({j}, {faceId.ToString()})",
                         LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
                     // Populate face changes to neighbour cell
@@ -193,7 +194,7 @@ namespace LevelGeneration
         /// </summary>
         public void SetModule(Module module)
         {
-            Util.DebugLog($"Set cell {name}!", LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel,
+            DebugLogger.Log($"Set cell {name}!", LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel,
                 gameObject);
 
             possibleModules = new List<Module> {module};

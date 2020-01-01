@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace LevelGeneration
+namespace LevelGeneration.Util
 {
     [Serializable]
     public class ConnectionsDictionary : SerializableDictionary<int, int>

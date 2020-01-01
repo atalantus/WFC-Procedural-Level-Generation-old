@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace LevelGeneration
+namespace LevelGeneration.Util
 {
     public class LinkedHashMap<K, V>
     {

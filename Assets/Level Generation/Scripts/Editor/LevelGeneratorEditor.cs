@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using LevelGeneration.WFC;
+using UnityEditor;
 using UnityEngine;
 
 namespace LevelGeneration

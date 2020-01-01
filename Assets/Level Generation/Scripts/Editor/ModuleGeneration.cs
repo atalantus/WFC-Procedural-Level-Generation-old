@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using LevelGeneration.Util;
+using LevelGeneration.WFC;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -11,7 +13,6 @@ namespace LevelGeneration
     public class ModuleGeneration : EditorWindow
     {
         public Cell cell;
-        public Vector3 modelBottomCenterOffset;
         public GameObject[] modelSources;
 
         private const string ModulesPath = "Assets/Level Generation/Modules";
@@ -230,10 +231,9 @@ namespace LevelGeneration
 
                         var modelMesh = meshFilter.sharedMesh;
                         faces =
-                            MeshGeneration.GetFaceMeshes(modelMesh, meshFilter.transform,
-                                cell.transform.localScale, modelBottomCenterOffset);
+                            FaceMeshUtil.GetFaceMeshes(modelMesh, meshFilter.transform, cell.transform.localScale);
                         meshpartHashes =
-                            MeshGeneration.GetMeshpartHashes(modelMesh, meshFilter.transform.localScale);
+                            FaceMeshUtil.GetMeshpartHashes(modelMesh, meshFilter.transform);
 
                         for (int j = 0; j < faces.Length; j++)
                         {
@@ -247,10 +247,9 @@ namespace LevelGeneration
                             masterVisualizer = masterPrefab.AddComponent<ModuleVisualizer>();
                             masterVisualizer.faces = faces;
                             masterVisualizer.cell = cell;
-                            masterVisualizer.moduleBottomCenterOffset = modelBottomCenterOffset;
                         }
 
-                        var localScale = meshFilter.transform.localScale;
+                        var localScale = cell.transform.localScale;
                         masterPrefab.transform.position = GetNextLayoutPos(new Vector2(localScale.x, localScale.z));
 
                         EditorUtility.SetDirty(masterPrefab);
@@ -401,12 +400,6 @@ namespace LevelGeneration
             GUILayout.Space(20);
 
             EditorGUILayout.PropertyField(serialCell, new GUIContent("Module cell"));
-
-            modelBottomCenterOffset =
-                EditorGUILayout.Vector3Field(
-                    new GUIContent("Model's Bottom Center Offset:",
-                        "The offset between of the mesh's transform position to it's bottom center point"),
-                    modelBottomCenterOffset);
 
             GUILayout.Space(15);
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using LevelGeneration.Util;
 using UnityEditor;
 using UnityEngine;
 
@@ -59,9 +60,6 @@ namespace LevelGeneration
 
             GUILayout.Space(10);
 
-            moduleVisualizer.moduleBottomCenterOffset = EditorGUILayout.Vector3Field("Bottom Center Offset:",
-                moduleVisualizer.moduleBottomCenterOffset);
-
             GUILayout.Label($"{moduleVisualizer.faces.Length} Faces:", EditorStyles.boldLabel);
             for (var i = 0; i < moduleVisualizer.faces.Length; i++)
             {
@@ -76,11 +74,11 @@ namespace LevelGeneration
 
             if (GUILayout.Button("Regenerate faces"))
             {
+                // TODO: Update ModuleInfo! (if necessary)
                 moduleVisualizer.faces =
-                    MeshGeneration.GetFaceMeshes(moduleVisualizer.ModelMesh,
+                    FaceMeshUtil.GetFaceMeshes(moduleVisualizer.ModelMesh,
                         moduleVisualizer.GetComponentInChildren<MeshFilter>(true).transform,
-                        moduleVisualizer.cell == null ? Vector3.one : moduleVisualizer.cell.transform.localScale,
-                        moduleVisualizer.moduleBottomCenterOffset);
+                        moduleVisualizer.cell == null ? Vector3.one : moduleVisualizer.cell.transform.localScale);
             }
         }
 

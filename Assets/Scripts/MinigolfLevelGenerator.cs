@@ -1,4 +1,4 @@
-﻿using LevelGeneration;
+﻿using LevelGeneration.WFC;
 
 public class MinigolfLevelGenerator : LevelGenerator
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LevelGeneration
+namespace LevelGeneration.Util
 {
     /// <summary>
     ///     Heap data structure

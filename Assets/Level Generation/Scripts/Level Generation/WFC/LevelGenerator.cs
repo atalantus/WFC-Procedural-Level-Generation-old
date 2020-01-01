@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Serialization;
+using LevelGeneration.Util;
 using Debug = UnityEngine.Debug;
 using Random = UnityEngine.Random;
 
-namespace LevelGeneration
+namespace LevelGeneration.WFC
 {
     /// <summary>
     /// Generates level using the wave-function-collapse algorithm.
@@ -165,14 +164,14 @@ namespace LevelGeneration
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            Util.DebugLog($"Starting Wave-function-collapse algorithm with Seed {seed}", DebugOutputLevels.All,
+            DebugLogger.Log($"Starting Wave-function-collapse algorithm with Seed {seed}", DebugOutputLevels.All,
                 debugOutputLevel,
                 gameObject);
 
             var applyInitConstr = new Stopwatch();
             applyInitConstr.Start();
 
-            Util.DebugLog("Applying initial constraints", DebugOutputLevels.All, debugOutputLevel, gameObject);
+            DebugLogger.Log("Applying initial constraints", DebugOutputLevels.All, debugOutputLevel, gameObject);
 
             // Make sure the level fits our initial constraints
             ApplyInitialConstraints(ref cells);
@@ -182,7 +181,7 @@ namespace LevelGeneration
             // Wave-function-collapse Algorithm
             while (true)
             {
-                Util.DebugLog("Starting another iteration! Removing next module.", DebugOutputLevels.All,
+                DebugLogger.Log("Starting another iteration! Removing next module.", DebugOutputLevels.All,
                     debugOutputLevel, gameObject);
 
                 // Remove finished cells from heap
@@ -243,7 +242,7 @@ namespace LevelGeneration
             var finishLevelStpwtch = new Stopwatch();
             finishLevelStpwtch.Start();
 
-            Util.DebugLog("Applying FinishLevel", DebugOutputLevels.All, debugOutputLevel, gameObject);
+            DebugLogger.Log("Applying FinishLevel", DebugOutputLevels.All, debugOutputLevel, gameObject);
 
             // Add end constraints
             FinishLevel(ref cells);
@@ -252,12 +251,12 @@ namespace LevelGeneration
 
             stopwatch.Stop();
 
-            Util.DebugLog($"Applying initial constraints took {applyInitConstr.Elapsed.TotalMilliseconds}ms",
+            DebugLogger.Log($"Applying initial constraints took {applyInitConstr.Elapsed.TotalMilliseconds}ms",
                 DebugOutputLevels.Runtime, debugOutputLevel, gameObject);
-            Util.DebugLog(
+            DebugLogger.Log(
                 $"Applying finishing level took {finishLevelStpwtch.Elapsed.TotalMilliseconds}ms",
                 DebugOutputLevels.Runtime, debugOutputLevel, gameObject);
-            Util.DebugLog(
+            DebugLogger.Log(
                 $"Complete Wave-function-collapse algorithm finished in {stopwatch.Elapsed.TotalMilliseconds}ms (Seed: {seed})",
                 DebugOutputLevels.Runtime, debugOutputLevel, gameObject);
 
