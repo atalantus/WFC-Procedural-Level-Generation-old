@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using LevelGeneration.Util;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace LevelGeneration.WFC
 {
