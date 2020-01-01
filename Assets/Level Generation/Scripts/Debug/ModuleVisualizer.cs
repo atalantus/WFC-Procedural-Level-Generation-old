@@ -17,6 +17,7 @@ namespace LevelGeneration
 
         private Mesh _modelMesh;
         private Renderer _renderer;
+        public ModulesInfo modulesInfo;
         public int selectedFaceMesh = -1;
         private List<int> _shownFaceMeshes;
         public List<Module> moduleAssets;
@@ -144,6 +145,11 @@ namespace LevelGeneration
             public bool Equals(ModuleFace other)
             {
                 return Mesh.Equals(other.Mesh);
+            }
+
+            public void SetHashCode(int hash)
+            {
+                this.hash = hash;
             }
 
             public override int GetHashCode()

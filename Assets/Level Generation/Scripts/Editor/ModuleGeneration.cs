@@ -231,7 +231,7 @@ namespace LevelGeneration
                         meshpartHashes =
                             FaceMeshUtil.GetMeshpartHashes(modelMesh, meshFilter.transform);
 
-                        for (var j = 0; j < faces.Length; j++) ModulesInfo.AddFace(false, faces[j].GetHashCode());
+                        for (var j = 0; j < faces.Length; j++) ModulesInfo.AddFace(faces[j].GetHashCode());
 
                         // Create master prefab
                         masterPrefab = PrefabUtility.InstantiatePrefab(modelSources[_i]) as GameObject;
@@ -240,6 +240,7 @@ namespace LevelGeneration
                             masterVisualizer = masterPrefab.AddComponent<ModuleVisualizer>();
                             masterVisualizer.faces = faces;
                             masterVisualizer.cell = cell;
+                            masterVisualizer.modulesInfo = ModulesInfo;
                         }
 
                         var localScale = cell.transform.localScale;

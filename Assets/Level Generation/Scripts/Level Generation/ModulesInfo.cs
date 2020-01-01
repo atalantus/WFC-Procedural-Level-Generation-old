@@ -10,27 +10,36 @@ namespace LevelGeneration
         private int _index = 1; // value 0 is reserved for "adjacent to nothing"
         public ConnectionsDictionary generatedConnections = new ConnectionsDictionary();
 
-        public void AddFace(bool isManual, int hash)
+        public int GenerateNewFaceId()
         {
-            if (!isManual || hash == 0)
+            while (generatedConnections.ContainsKey(_index))
             {
-                if (generatedConnections.ContainsKey(hash))
-                    generatedConnections[hash]++;
-                else
-                    generatedConnections.Add(hash, 1);
+                _index++;
+                if (_index == 0)
+                    throw new Exception("No more available Hashes in int range! " +
+                                        "This is most likely a bug.");
             }
-            else
-            {
-                while (generatedConnections.ContainsKey(_index))
-                {
-                    _index++;
-                    if (_index == 0)
-                        throw new Exception("No more available Hashes in int range! " +
-                                            "This is most likely a bug.");
-                }
 
-                generatedConnections.Add(_index, 1);
-            }
+            return _index;
+        }
+
+        public void AddFace(int hash)
+        {
+            if (generatedConnections.ContainsKey(hash))
+                ++generatedConnections[hash];
+            else
+                generatedConnections.Add(hash, 1);
+
+            EditorUtility.SetDirty(this);
+        }
+
+        public void RemoveFace(int hash)
+        {
+            if (generatedConnections.ContainsKey(hash))
+                --generatedConnections[hash];
+
+            if (generatedConnections[hash] == 0)
+                generatedConnections.Remove(hash);
 
             EditorUtility.SetDirty(this);
         }

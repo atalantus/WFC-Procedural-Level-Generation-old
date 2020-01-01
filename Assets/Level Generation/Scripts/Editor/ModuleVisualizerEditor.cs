@@ -8,6 +8,8 @@ namespace LevelGeneration
     public class ModuleVisualizerEditor : Editor
     {
         private readonly string[] _faceNames = {"Forward", "Up", "Right", "Back", "Down", "Left"};
+        private string newAdjacencyId;
+        private bool showError = false;
 
         private void OnSceneGUI()
         {
@@ -19,7 +21,7 @@ namespace LevelGeneration
             #region Scene UI
 
             Handles.BeginGUI();
-            GUILayout.BeginArea(new Rect(10, 10, 185, 95), new GUIStyle(GUI.skin.box));
+            GUILayout.BeginArea(new Rect(10, 10, 185, 150), new GUIStyle(GUI.skin.box));
 
             if (moduleVisualizer.selectedFaceMesh == -1)
             {
@@ -27,16 +29,81 @@ namespace LevelGeneration
             }
             else
             {
-                EditorStyles.label.wordWrap = true;
-                GUILayout.Label(
-                    $"Selected face: {_faceNames[moduleVisualizer.selectedFaceMesh]} ({moduleVisualizer.faces[moduleVisualizer.selectedFaceMesh].GetHashCode()})",
+                GUI.skin.label.wordWrap = true;
+                GUI.skin.label.normal.textColor = Color.black;
+
+                GUILayout.Label($"Selected face: {_faceNames[moduleVisualizer.selectedFaceMesh]}",
                     EditorStyles.boldLabel);
 
+                GUILayout.Space(-5);
+
+                GUILayout.Label(
+                    $"({moduleVisualizer.faces[moduleVisualizer.selectedFaceMesh].GetHashCode().ToString()})");
+
+                GUILayout.Space(8);
+
                 if (GUILayout.Button("Set adjacent to nothing", GUILayout.Width(175)))
-                    Debug.Log("adjacent to nothing");
+                {
+                    var selectedFace = moduleVisualizer.selectedFaceMesh;
+
+                    // update face hash
+                    moduleVisualizer.modulesInfo.RemoveFace(moduleVisualizer.faces[selectedFace].GetHashCode());
+                    moduleVisualizer.modulesInfo.AddFace(0);
+                    moduleVisualizer.faces[selectedFace].SetHashCode(0);
+
+                    // reselect mesh face
+                    moduleVisualizer.DeselectMeshFace();
+                    moduleVisualizer.SelectMeshFace(selectedFace);
+                }
 
                 if (GUILayout.Button("Set to new adjacency id", GUILayout.Width(175)))
-                    Debug.Log("new adjacency id");
+                {
+                    var selectedFace = moduleVisualizer.selectedFaceMesh;
+
+                    // update face hash
+                    moduleVisualizer.modulesInfo.RemoveFace(moduleVisualizer.faces[selectedFace].GetHashCode());
+                    var n = moduleVisualizer.modulesInfo.GenerateNewFaceId();
+                    moduleVisualizer.modulesInfo.AddFace(n);
+                    moduleVisualizer.faces[selectedFace].SetHashCode(n);
+
+                    // reselect mesh face
+                    moduleVisualizer.DeselectMeshFace();
+                    moduleVisualizer.SelectMeshFace(selectedFace);
+                }
+
+                GUILayout.BeginHorizontal();
+
+                if (GUILayout.Button("Set id:", GUILayout.Width(50)))
+                {
+                    // change adjacency id
+                    var isNumeric = int.TryParse(newAdjacencyId, out var n);
+                    if (!isNumeric) showError = true;
+                    else
+                    {
+                        showError = false;
+                        var selectedFace = moduleVisualizer.selectedFaceMesh;
+
+                        // update face hash
+                        moduleVisualizer.modulesInfo.RemoveFace(moduleVisualizer.faces[selectedFace].GetHashCode());
+                        moduleVisualizer.modulesInfo.AddFace(n);
+                        moduleVisualizer.faces[selectedFace].SetHashCode(n);
+
+                        // reselect mesh face
+                        moduleVisualizer.DeselectMeshFace();
+                        moduleVisualizer.SelectMeshFace(selectedFace);
+                    }
+                }
+
+                newAdjacencyId = GUILayout.TextField(newAdjacencyId);
+
+                GUILayout.EndHorizontal();
+                GUILayout.Space(8);
+
+                if (showError)
+                {
+                    var errorStyle = new GUIStyle(GUI.skin.label) {normal = {textColor = Color.red}};
+                    GUILayout.Label("New adjacency id must be an integer!", errorStyle);
+                }
             }
 
             GUILayout.EndArea();
