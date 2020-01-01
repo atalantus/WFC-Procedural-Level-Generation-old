@@ -146,7 +146,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 216833265}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f90b9bd44867465ca915114bf2d9e42b, type: 3}
+  m_Script: {fileID: 11500000, guid: 3f250ed0228677447aef5c19aef1538a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   generalModules: []
@@ -155,7 +155,7 @@ MonoBehaviour:
   validateCellAdjacency: 1
   debugOutputLevel: 2
   seed: -1
-  dimensions: {x: 1, y: 1, z: 1}
+  dimensions: {x: 10, y: 10, z: 10}
   cellPrefab: {fileID: 4559502570846079236, guid: cfe4d760fa6faa34cb340be1a13d380b,
     type: 3}
 --- !u!4 &216833267
