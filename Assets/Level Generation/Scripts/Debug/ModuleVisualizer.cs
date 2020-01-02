@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using LevelGeneration.WFC;
+using UnityEditor;
 using UnityEngine;
 
 namespace LevelGeneration
@@ -12,15 +13,21 @@ namespace LevelGeneration
 
         private delegate void OnFaceEventHandler(ModuleFace selectedFace);
 
+        private delegate void OnModuleVariantsHandler(ModuleVisualizer caller);
+
         private static event OnFaceEventHandler OnFaceSelectEvent;
         private static event OnFaceEventHandler OnFaceDeselectEvent;
 
+        private static event OnModuleVariantsHandler OnModuleVariantsShowEvent;
+        private static event OnModuleVariantsHandler OnModuleVariantsHideEvent;
+
         private Mesh _modelMesh;
         private Renderer _renderer;
+        private bool showVariants = false;
         public ModulesInfo modulesInfo;
         public int selectedFaceMesh = -1;
         private List<int> _shownFaceMeshes;
-        public List<Module> moduleAssets;
+        public Module[] moduleAssets;
         public Cell cell;
 
         public Bounds ModuleBounds => new Bounds(
@@ -52,9 +59,11 @@ namespace LevelGeneration
 
         private void Awake()
         {
+            Debug.Log("Awake");
+            
             selectedFaceMesh = -1;
             _shownFaceMeshes = new List<int>();
-            moduleAssets = new List<Module>();
+            moduleAssets = new Module[4];
 
             _modelMesh = GetComponentInChildren<MeshFilter>(true).sharedMesh;
             _renderer = GetComponentInChildren<Renderer>(true);
@@ -69,12 +78,25 @@ namespace LevelGeneration
             };
 
             OnFaceDeselectEvent += face => { _shownFaceMeshes = new List<int>(); };
+
+            OnModuleVariantsShowEvent += caller =>
+            {
+                Debug.Log("Show event");
+                if (caller != this)
+                {
+                    Renderer.enabled = false;
+                }
+            };
+
+            OnModuleVariantsHideEvent += caller => { Renderer.enabled = true; };
         }
 
         private void OnDrawGizmos()
         {
             if (_shownFaceMeshes.Count > 0)
                 DrawFaceMeshes();
+            else if (showVariants)
+                DrawVariantMeshes();
         }
 
         private void DrawFaceMeshes()
@@ -87,6 +109,31 @@ namespace LevelGeneration
 
                 Gizmos.color = i == selectedFaceMesh ? Color.red : Color.blue;
                 Gizmos.DrawWireMesh(faces[i].Mesh, transform.position, transform.rotation, Vector3.one);
+            }
+        }
+
+        private void DrawVariantMeshes()
+        {
+            var offset = transform.position;
+
+            // display module variants
+            for (var i = 1; i < moduleAssets.Length; i++)
+            {
+                var variant = moduleAssets[i];
+                if (variant == null) continue;
+
+                offset.x += cell.transform.localScale.x * 1.5f;
+
+                var meshFilter = variant.moduleGO.GetComponentInChildren<MeshFilter>();
+                var meshTransform = meshFilter.transform;
+
+                Gizmos.color = new Color(1f, 1f, 1f, 0.5f);
+                Gizmos.DrawMesh(meshFilter.sharedMesh, offset + meshTransform.localPosition, meshTransform.rotation,
+                    meshTransform.localScale);
+
+                var style = new GUIStyle {normal = {textColor = Color.black}, alignment = TextAnchor.MiddleCenter};
+                Handles.Label(new Vector3(offset.x, offset.y + cell.transform.localScale.y + 0.5f, offset.z),
+                    variant.name, style);
             }
         }
 
@@ -104,6 +151,23 @@ namespace LevelGeneration
             OnFaceDeselectEvent?.Invoke(faces[selectedFaceMesh]);
 
             selectedFaceMesh = -1;
+        }
+
+        public void ShowModuleVariants()
+        {
+            showVariants = true;
+            OnModuleVariantsShowEvent?.Invoke(this);
+        }
+
+        public void HideModuleVariants()
+        {
+            showVariants = false;
+            OnModuleVariantsHideEvent?.Invoke(this);
+        }
+
+        public void UpdateModuleAssets(int faceId, int newHash)
+        {
+            // TODO: Apply new hash to module assets
         }
 
 #endif

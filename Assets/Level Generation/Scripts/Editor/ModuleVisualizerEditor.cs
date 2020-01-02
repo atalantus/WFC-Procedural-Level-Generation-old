@@ -10,12 +10,14 @@ namespace LevelGeneration
         private readonly string[] _faceNames = {"Forward", "Up", "Right", "Back", "Down", "Left"};
         private string newAdjacencyId;
         private bool showError = false;
+        private bool showVariants = false;
+        private bool showHandles = true;
 
         private void OnSceneGUI()
         {
             var moduleVisualizer = (ModuleVisualizer) target;
 
-            if (moduleVisualizer.selectedFaceMesh == -1)
+            if (showHandles && !showVariants)
                 ShowFaceHandles(moduleVisualizer);
 
             #region Scene UI
@@ -23,9 +25,57 @@ namespace LevelGeneration
             Handles.BeginGUI();
             GUILayout.BeginArea(new Rect(10, 10, 185, 150), new GUIStyle(GUI.skin.box));
 
-            if (moduleVisualizer.selectedFaceMesh == -1)
+            if (showHandles)
             {
                 GUILayout.Label("Select a face", EditorStyles.boldLabel);
+
+                GUILayout.EndArea();
+
+                // display variants window
+                GUILayout.BeginArea(new Rect(10, 170, 185, 125), new GUIStyle(GUI.skin.box));
+                GUILayout.BeginHorizontal();
+
+                GUILayout.Label("Module Variants", EditorStyles.boldLabel);
+
+                GUILayout.FlexibleSpace();
+                GUILayout.BeginVertical();
+                GUILayout.Space(5);
+
+                if (!showVariants)
+                    if (GUILayout.Button("Show"))
+                    {
+                        showVariants = true;
+                        showHandles = true;
+                        moduleVisualizer.ShowModuleVariants();
+                    }
+
+                GUILayout.EndVertical();
+                GUILayout.Space(2);
+                GUILayout.EndHorizontal();
+                GUILayout.Space(8);
+
+                for (int i = 1; i < moduleVisualizer.moduleAssets.Length; i++)
+                {
+                    if (moduleVisualizer.moduleAssets[i] == null) continue;
+
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Space(15);
+
+                    GUILayout.Label(moduleVisualizer.moduleAssets[i].name);
+                    if (showVariants)
+                        if (GUILayout.Button("Delete", GUILayout.Width(48)))
+                        {
+                            var moduleAsset = moduleVisualizer.moduleAssets[i];
+
+                            AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(moduleAsset));
+                            AssetDatabase.Refresh();
+                            AssetDatabase.SaveAssets();
+
+                            moduleVisualizer.moduleAssets[i] = null;
+                        }
+
+                    GUILayout.EndHorizontal();
+                }
             }
             else
             {
@@ -117,7 +167,13 @@ namespace LevelGeneration
             var moduleVisualizer = (ModuleVisualizer) target;
 
             // deselected object
-            moduleVisualizer.DeselectMeshFace();
+            if (!showHandles)
+                moduleVisualizer.DeselectMeshFace();
+            else if (showVariants)
+                moduleVisualizer.HideModuleVariants();
+
+            showHandles = true;
+            showVariants = false;
         }
 
         public override void OnInspectorGUI()
@@ -163,7 +219,10 @@ namespace LevelGeneration
 
                 if (Handles.Button(pos, Quaternion.Euler(i % 3 == 1 ? 90 : 0, i % 3 == 2 ? 90 : 0, 0), size, size,
                     Handles.RectangleHandleCap))
+                {
+                    showHandles = false;
                     moduleVisualizer.SelectMeshFace(i);
+                }
             }
         }
     }

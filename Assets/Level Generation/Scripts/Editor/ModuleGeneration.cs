@@ -266,7 +266,8 @@ namespace LevelGeneration
                             continue;
                         }
 
-                        if (i == 3 && masterVisualizer.moduleAssets.Count <= 2)
+                        if (i == 3 && (masterVisualizer.moduleAssets[1] == null ||
+                                       masterVisualizer.moduleAssets[2] == null))
                             // 270° rotated version would not differ 90° variant
                             continue;
                     }
@@ -299,7 +300,7 @@ namespace LevelGeneration
                         moduleAsset.faceConnections[j] = faces[n].GetHashCode();
                     }
 
-                    masterVisualizer.moduleAssets.Add(moduleAsset);
+                    masterVisualizer.moduleAssets[i] = moduleAsset;
 
                     // Mark asset as dirty
                     EditorUtility.SetDirty(moduleAsset);
