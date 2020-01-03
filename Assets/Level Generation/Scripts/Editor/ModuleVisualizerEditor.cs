@@ -32,7 +32,7 @@ namespace LevelGeneration
                 GUILayout.EndArea();
 
                 // display variants window
-                GUILayout.BeginArea(new Rect(10, 170, 185, 125), new GUIStyle(GUI.skin.box));
+                GUILayout.BeginArea(new Rect(10, 170, 185, 135), new GUIStyle(GUI.skin.box));
                 GUILayout.BeginHorizontal();
 
                 GUILayout.Label("Module Variants", EditorStyles.boldLabel);
@@ -61,7 +61,8 @@ namespace LevelGeneration
                     GUILayout.BeginHorizontal();
                     GUILayout.Space(15);
 
-                    GUILayout.Label(moduleVisualizer.moduleAssets[i].name);
+                    GUI.skin.label.wordWrap = true;
+                    GUILayout.Label(moduleVisualizer.moduleAssets[i].name, GUILayout.Width(100));
                     if (showVariants)
                         if (GUILayout.Button("Delete", GUILayout.Width(48)))
                         {

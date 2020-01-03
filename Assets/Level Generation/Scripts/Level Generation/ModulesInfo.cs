@@ -2,9 +2,11 @@
 using LevelGeneration.Util;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace LevelGeneration
 {
+    [Serializable]
     public class ModulesInfo : ScriptableObject
     {
         private int _index = 1; // value 0 is reserved for "adjacent to nothing"

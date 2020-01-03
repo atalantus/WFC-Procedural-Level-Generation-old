@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 namespace LevelGeneration
 {
@@ -16,7 +17,8 @@ namespace LevelGeneration
 
         private const string ModulesPath = "Assets/Level Generation/Modules";
 
-        private ModulesInfo _modulesInfo;
+        private ModulesManager _modulesManager;
+        [SerializeField] private ModulesInfo modulesInfo;
         private Action _generateModules;
         private bool _generating;
         private int _i;
@@ -26,11 +28,11 @@ namespace LevelGeneration
         private Vector2 _scrollPosEditor;
         private int _modulesSceneCount = 0;
 
-        public ModulesInfo ModulesInfo
+        private ModulesInfo ModulesInfo
         {
             get
             {
-                if (_modulesInfo != null) return _modulesInfo;
+                if (modulesInfo != null) return modulesInfo;
 
                 var m = AssetDatabase.LoadAssetAtPath<ModulesInfo>($"{ModulesPath}/ModulesInfo.asset");
                 if (m == null)
@@ -41,12 +43,12 @@ namespace LevelGeneration
                 }
                 else
                 {
-                    _modulesInfo = m;
-                    return _modulesInfo;
+                    modulesInfo = m;
+                    return modulesInfo;
                 }
 
-                _modulesInfo = AssetDatabase.LoadAssetAtPath<ModulesInfo>($"{ModulesPath}/ModulesInfo.asset");
-                return _modulesInfo;
+                modulesInfo = AssetDatabase.LoadAssetAtPath<ModulesInfo>($"{ModulesPath}/ModulesInfo.asset");
+                return modulesInfo;
             }
         }
 
@@ -153,6 +155,9 @@ namespace LevelGeneration
                 //     return;
                 // }
 
+                // Get ModulesManager
+                GetModulesManager();
+
                 // Create empty module
                 CreateEmptyModule();
 
@@ -167,6 +172,17 @@ namespace LevelGeneration
             {
                 StopModuleGeneration();
                 Debug.LogError(e);
+            }
+        }
+
+        private void GetModulesManager()
+        {
+            _modulesManager = FindObjectOfType<ModulesManager>();
+            if (_modulesManager == null)
+            {
+                var mm = new GameObject("_ModulesManager");
+                mm.AddComponent<ModulesManager>();
+                _modulesManager = mm.GetComponent<ModulesManager>();
             }
         }
 
@@ -241,6 +257,8 @@ namespace LevelGeneration
                             masterVisualizer.faces = faces;
                             masterVisualizer.cell = cell;
                             masterVisualizer.modulesInfo = ModulesInfo;
+                            masterVisualizer.modulesManager = _modulesManager;
+                            masterVisualizer.RegisterEvents();
                         }
 
                         var localScale = cell.transform.localScale;

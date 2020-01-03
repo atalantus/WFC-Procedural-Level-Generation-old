@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace LevelGeneration
 {
@@ -6,6 +7,7 @@ namespace LevelGeneration
     /// Scriptable Object asset for one specific module
     /// </summary>
     [CreateAssetMenu(fileName = "New Module", menuName = "WFC Level Generation/Module")]
+    [Serializable]
     public class Module : ScriptableObject
     {
         /// <summary>

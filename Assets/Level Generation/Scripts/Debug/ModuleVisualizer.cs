@@ -2,32 +2,27 @@
 using System.Collections.Generic;
 using LevelGeneration.WFC;
 using UnityEditor;
+using UnityEditor.Events;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace LevelGeneration
 {
     [ExecuteInEditMode]
+    [Serializable]
     public class ModuleVisualizer : MonoBehaviour
     {
 #if UNITY_EDITOR
 
-        private delegate void OnFaceEventHandler(ModuleFace selectedFace);
-
-        private delegate void OnModuleVariantsHandler(ModuleVisualizer caller);
-
-        private static event OnFaceEventHandler OnFaceSelectEvent;
-        private static event OnFaceEventHandler OnFaceDeselectEvent;
-
-        private static event OnModuleVariantsHandler OnModuleVariantsShowEvent;
-        private static event OnModuleVariantsHandler OnModuleVariantsHideEvent;
-
         private Mesh _modelMesh;
         private Renderer _renderer;
         private bool showVariants = false;
+        private List<int> _shownFaceMeshes = new List<int>();
+
+        public ModulesManager modulesManager;
         public ModulesInfo modulesInfo;
         public int selectedFaceMesh = -1;
-        private List<int> _shownFaceMeshes;
-        public Module[] moduleAssets;
+        public Module[] moduleAssets = new Module[4];
         public Cell cell;
 
         public Bounds ModuleBounds => new Bounds(
@@ -59,36 +54,16 @@ namespace LevelGeneration
 
         private void Awake()
         {
-            Debug.Log("Awake");
-            
-            selectedFaceMesh = -1;
-            _shownFaceMeshes = new List<int>();
-            moduleAssets = new Module[4];
-
             _modelMesh = GetComponentInChildren<MeshFilter>(true).sharedMesh;
             _renderer = GetComponentInChildren<Renderer>(true);
+        }
 
-            OnFaceSelectEvent += face =>
-            {
-                for (var i = 0; i < faces.Length; i++)
-                {
-                    var moduleFace = faces[i];
-                    if (moduleFace.GetHashCode() == face.GetHashCode()) _shownFaceMeshes.Add(i);
-                }
-            };
-
-            OnFaceDeselectEvent += face => { _shownFaceMeshes = new List<int>(); };
-
-            OnModuleVariantsShowEvent += caller =>
-            {
-                Debug.Log("Show event");
-                if (caller != this)
-                {
-                    Renderer.enabled = false;
-                }
-            };
-
-            OnModuleVariantsHideEvent += caller => { Renderer.enabled = true; };
+        public void RegisterEvents()
+        {
+            UnityEventTools.AddPersistentListener(modulesManager.OnFaceSelectEvent, OnSelectMeshFace);
+            UnityEventTools.AddPersistentListener(modulesManager.OnFaceDeselectEvent, OnDeselectMeshFace);
+            UnityEventTools.AddVoidPersistentListener(modulesManager.OnModuleVariantsShowEvent, OnShowModuleVariants);
+            UnityEventTools.AddVoidPersistentListener(modulesManager.OnModuleVariantsHideEvent, OnHideModuleVariants);
         }
 
         private void OnDrawGizmos()
@@ -141,28 +116,56 @@ namespace LevelGeneration
         {
             selectedFaceMesh = i;
 
-            OnFaceSelectEvent?.Invoke(faces[selectedFaceMesh]);
+            modulesManager.OnFaceSelectEvent.Invoke(faces[selectedFaceMesh]);
+        }
+
+        public void OnSelectMeshFace(ModuleFace face)
+        {
+            for (var i = 0; i < faces.Length; i++)
+            {
+                var moduleFace = faces[i];
+                if (moduleFace.GetHashCode() == face.GetHashCode()) _shownFaceMeshes.Add(i);
+            }
         }
 
         public void DeselectMeshFace()
         {
             if (selectedFaceMesh == -1) return;
 
-            OnFaceDeselectEvent?.Invoke(faces[selectedFaceMesh]);
+            modulesManager.OnFaceDeselectEvent.Invoke(faces[selectedFaceMesh]);
 
             selectedFaceMesh = -1;
+        }
+
+        public void OnDeselectMeshFace(ModuleFace face)
+        {
+            _shownFaceMeshes = new List<int>();
         }
 
         public void ShowModuleVariants()
         {
             showVariants = true;
-            OnModuleVariantsShowEvent?.Invoke(this);
+            modulesManager.OnModuleVariantsShowEvent.Invoke();
+            Renderer.enabled = true;
+        }
+
+        public void OnShowModuleVariants()
+        {
+            Debug.Log("OnShowModuleVariants");
+
+            Renderer.enabled = false;
         }
 
         public void HideModuleVariants()
         {
             showVariants = false;
-            OnModuleVariantsHideEvent?.Invoke(this);
+            modulesManager.OnModuleVariantsHideEvent.Invoke();
+        }
+
+        public void OnHideModuleVariants()
+        {
+            Debug.Log("OnHideModuleVariants");
+            Renderer.enabled = true;
         }
 
         public void UpdateModuleAssets(int faceId, int newHash)
