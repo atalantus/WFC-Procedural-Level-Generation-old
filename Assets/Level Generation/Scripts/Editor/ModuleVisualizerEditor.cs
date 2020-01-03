@@ -102,6 +102,9 @@ namespace LevelGeneration
                     moduleVisualizer.modulesInfo.AddFace(0);
                     moduleVisualizer.faces[selectedFace].SetHashCode(0);
 
+                    // update module asset hashes
+                    moduleVisualizer.UpdateModuleAssets(moduleVisualizer.selectedFaceMesh, 0);
+
                     // reselect mesh face
                     moduleVisualizer.DeselectMeshFace();
                     moduleVisualizer.SelectMeshFace(selectedFace);
@@ -116,6 +119,9 @@ namespace LevelGeneration
                     var n = moduleVisualizer.modulesInfo.GenerateNewFaceId();
                     moduleVisualizer.modulesInfo.AddFace(n);
                     moduleVisualizer.faces[selectedFace].SetHashCode(n);
+
+                    // update module asset hashes
+                    moduleVisualizer.UpdateModuleAssets(moduleVisualizer.selectedFaceMesh, n);
 
                     // reselect mesh face
                     moduleVisualizer.DeselectMeshFace();
@@ -138,6 +144,9 @@ namespace LevelGeneration
                         moduleVisualizer.modulesInfo.RemoveFace(moduleVisualizer.faces[selectedFace].GetHashCode());
                         moduleVisualizer.modulesInfo.AddFace(n);
                         moduleVisualizer.faces[selectedFace].SetHashCode(n);
+
+                        // update module asset hashes
+                        moduleVisualizer.UpdateModuleAssets(moduleVisualizer.selectedFaceMesh, n);
 
                         // reselect mesh face
                         moduleVisualizer.DeselectMeshFace();
@@ -196,11 +205,28 @@ namespace LevelGeneration
             GUILayout.Space(10);
 
             if (GUILayout.Button("Regenerate faces"))
-                // TODO: Update ModuleInfo! (if necessary)
+            {
+                // remove faces from module info
+                foreach (var face in moduleVisualizer.faces)
+                {
+                    moduleVisualizer.modulesInfo.RemoveFace(face.GetHashCode());
+                }
+
+                // recalculate faces
                 moduleVisualizer.faces =
                     FaceMeshUtil.GetFaceMeshes(moduleVisualizer.ModelMesh,
                         moduleVisualizer.GetComponentInChildren<MeshFilter>(true).transform,
                         moduleVisualizer.cell == null ? Vector3.one : moduleVisualizer.cell.transform.localScale);
+
+                // add new faces to module info and
+                // apply new face hashes to module assets
+                for (var i = 0; i < moduleVisualizer.faces.Length; i++)
+                {
+                    var face = moduleVisualizer.faces[i];
+                    moduleVisualizer.modulesInfo.AddFace(face.GetHashCode());
+                    moduleVisualizer.UpdateModuleAssets(i, face.GetHashCode());
+                }
+            }
         }
 
         private void ShowFaceHandles(ModuleVisualizer moduleVisualizer)

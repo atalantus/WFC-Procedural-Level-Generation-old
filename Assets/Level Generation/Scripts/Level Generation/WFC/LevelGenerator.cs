@@ -30,7 +30,6 @@ namespace LevelGeneration.WFC
 
         /// <summary>
         /// Specifies only a subset of modules for specific cells
-        /// TODO
         /// </summary>
         [Tooltip("Specify a different set of modules for specific cells")]
         public SpecialCell[] specialCells;

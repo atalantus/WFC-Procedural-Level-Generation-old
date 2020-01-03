@@ -170,7 +170,23 @@ namespace LevelGeneration
 
         public void UpdateModuleAssets(int faceId, int newHash)
         {
-            // TODO: Apply new hash to module assets
+            for (var i = 0; i < moduleAssets.Length; i++)
+            {
+                if (moduleAssets[i] == null) continue;
+
+                int n;
+
+                if (faceId % 3 == 1 || i == 0)
+                    // TODO: Recalculate rotated top/bottom face hash code
+                    n = faceId;
+                else if (faceId % 3 == 0)
+                    n = (faceId + 2 * Mathf.CeilToInt(i / 2f) + 1 * (i / 2)) % 6;
+                else
+                    n = (faceId + 1 * Mathf.CeilToInt(i / 2f) + 2 * (i / 2)) % 6;
+
+                moduleAssets[i].faceConnections[n] = newHash;
+                EditorUtility.SetDirty(moduleAssets[i]);
+            }
         }
 
 #endif

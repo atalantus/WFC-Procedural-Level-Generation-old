@@ -307,15 +307,17 @@ namespace LevelGeneration
                     {
                         if (faces == null) return;
 
-                        int n;
+                        var n = j;
 
                         if (j % 3 == 1 || i == 0)
                             // TODO: Recalculate rotated top/bottom face hash code
                             n = j;
+                        else if (j % 3 == 0)
+                            n = (j + 2 * Mathf.CeilToInt(i / 2f) + 1 * (i / 2)) % 6;
                         else
-                            n = (j + i + (i == 3 ? 2 : 1)) % 6;
+                            n = (j + 1 * Mathf.CeilToInt(i / 2f) + 2 * (i / 2)) % 6;
 
-                        moduleAsset.faceConnections[j] = faces[n].GetHashCode();
+                        moduleAsset.faceConnections[j] = faces[n % 6].GetHashCode();
                     }
 
                     masterVisualizer.moduleAssets[i] = moduleAsset;
