@@ -159,7 +159,7 @@ namespace LevelGeneration.WFC
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            DebugLogger.Log($"Starting Wave-function-collapse algorithm with Seed {seed}", DebugOutputLevels.All,
+            DebugLogger.Log($"Starting Wave-function-collapse algorithm with Seed {wfcSeed}", DebugOutputLevels.All,
                 debugOutputLevel,
                 gameObject);
 
@@ -254,7 +254,7 @@ namespace LevelGeneration.WFC
                 $"Applying final constraints took {finishLevelStpwtch.Elapsed.TotalMilliseconds}ms",
                 DebugOutputLevels.Runtime, debugOutputLevel, gameObject);
             DebugLogger.Log(
-                $"Complete Wave-function-collapse algorithm finished in {stopwatch.Elapsed.TotalMilliseconds}ms (Seed: {seed})",
+                $"Complete Wave-function-collapse algorithm finished in {stopwatch.Elapsed.TotalMilliseconds}ms (Seed: {wfcSeed})",
                 DebugOutputLevels.Runtime, debugOutputLevel, gameObject);
 
             if (validateCellAdjacency) CheckGeneratedLevel();

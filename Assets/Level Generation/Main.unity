@@ -149,13 +149,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f250ed0228677447aef5c19aef1538a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  generalModules: []
+  generalModules:
+  - {fileID: 11400000, guid: 0d0bece2d5166804eaa007569fefa36c, type: 2}
+  - {fileID: 11400000, guid: 6191954269cc5374893c9e87d3a48b89, type: 2}
+  - {fileID: 11400000, guid: f2738836d765c06458cdcd59fcd9f5d0, type: 2}
+  - {fileID: 11400000, guid: 1a17b913317dfd847a0a008e158657f7, type: 2}
+  - {fileID: 11400000, guid: f1accdcd4fc1d7041baa9f541fb2d0b2, type: 2}
+  - {fileID: 11400000, guid: 930df280b7201da46aaba030b24ab245, type: 2}
+  - {fileID: 11400000, guid: 7e2cbd923669b7f499c84458522238e5, type: 2}
+  - {fileID: 11400000, guid: d0400c94b62b14148a67d84875198032, type: 2}
+  - {fileID: 11400000, guid: 75a054a5003017545bcc6f27c830817a, type: 2}
+  - {fileID: 11400000, guid: c13431fe98296e74da8319bdbfa63863, type: 2}
+  - {fileID: 11400000, guid: bd4e25f9eec53ca4a919b5b440df3baf, type: 2}
+  - {fileID: 11400000, guid: 7e8bdd944c050654281e94934636bfc3, type: 2}
+  - {fileID: 11400000, guid: 86ce113f48eb080458e130a517f15900, type: 2}
+  - {fileID: 11400000, guid: fd42571d3bf673f4ba989881f87d574b, type: 2}
   specialCells: []
   runInExtraThread: 1
   validateCellAdjacency: 1
   debugOutputLevel: 2
   seed: -1
-  dimensions: {x: 10, y: 10, z: 10}
+  dimensions: {x: 5, y: 5, z: 5}
   cellPrefab: {fileID: 4559502570846079236, guid: cfe4d760fa6faa34cb340be1a13d380b,
     type: 3}
 --- !u!4 &216833267

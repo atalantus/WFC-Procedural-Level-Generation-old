@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: ModulesInfo
   m_EditorClassIdentifier: 
   generatedConnections:
-    keys: 0000000072b2f7863cd4e45d
-    values: 180000000500000001000000
+    keys: 0000000072b2f78601000000
+    values: 140000000900000001000000
