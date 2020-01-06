@@ -27,35 +27,29 @@ namespace LevelGeneration.WFC
                 for (var z = 0; z < cells.GetLength(2); z++)
                 {
                     var c = cells[x, y, z];
-                    for (var j = 0; j < c.possibleModules.Count; j++)
-                    {
-                        if (!c.FilterCell(
-                            new FaceFilter(i == 0 ? FaceFilter.FaceDirections.Up : FaceFilter.FaceDirections.Down,
-                                i == 0 ? floorCnstr.Value : ceilingCnstr.Value), true))
-                            Debug.LogError(
-                                $"Error resolving {(i == 0 ? "Floor" : "Ceiling")} in WorldBordersConstraint");
-                    }
+                    if (!c.FilterCell(
+                        new FaceFilter(i == 0 ? FaceFilter.FaceDirections.Up : FaceFilter.FaceDirections.Down,
+                            i == 0 ? floorCnstr.Value : ceilingCnstr.Value), true))
+                        Debug.LogError(
+                            $"Error resolving {(i == 0 ? "Floor" : "Ceiling")} in WorldBordersConstraint");
                 }
             }
 
             // apply forward and back constraints    
             for (var i = 0; i < 2; i++)
             {
-                if ((i == 0 ? forwardCnstr : backCnstr) == null) continue;
+                if ((i == 0 ? backCnstr : forwardCnstr) == null) continue;
 
                 var z = (cells.GetLength(2) - 1) * i;
                 for (var x = 0; x < cells.GetLength(0); x++)
                 for (var y = 0; y < cells.GetLength(1); y++)
                 {
                     var c = cells[x, y, z];
-                    for (var j = 0; j < c.possibleModules.Count; j++)
-                    {
-                        if (!c.FilterCell(
-                            new FaceFilter(i == 0 ? FaceFilter.FaceDirections.Back : FaceFilter.FaceDirections.Forward,
-                                i == 0 ? forwardCnstr.Value : backCnstr.Value), true))
-                            Debug.LogError(
-                                $"Error resolving {(i == 0 ? "Forward" : "Back")} in WorldBordersConstraint");
-                    }
+                    if (!c.FilterCell(
+                        new FaceFilter(i == 0 ? FaceFilter.FaceDirections.Forward : FaceFilter.FaceDirections.Back,
+                            i == 0 ? backCnstr.Value : forwardCnstr.Value), true))
+                        Debug.LogError(
+                            $"Error resolving {(i == 0 ? "Back" : "Forward")} in WorldBordersConstraint");
                 }
             }
 
@@ -69,14 +63,11 @@ namespace LevelGeneration.WFC
                 for (var z = 0; z < cells.GetLength(2); z++)
                 {
                     var c = cells[x, y, z];
-                    for (var j = 0; j < c.possibleModules.Count; j++)
-                    {
-                        if (!c.FilterCell(
-                            new FaceFilter(i == 0 ? FaceFilter.FaceDirections.Right : FaceFilter.FaceDirections.Left,
-                                i == 0 ? leftConstr.Value : rightCnstr.Value), true))
-                            Debug.LogError(
-                                $"Error resolving {(i == 0 ? "Left" : "Right")} in WorldBordersConstraint");
-                    }
+                    if (!c.FilterCell(
+                        new FaceFilter(i == 0 ? FaceFilter.FaceDirections.Right : FaceFilter.FaceDirections.Left,
+                            i == 0 ? leftConstr.Value : rightCnstr.Value), true))
+                        Debug.LogError(
+                            $"Error resolving {(i == 0 ? "Left" : "Right")} in WorldBordersConstraint");
                 }
             }
         }
