@@ -64,6 +64,19 @@ namespace LevelGeneration
             UnityEventTools.AddPersistentListener(modulesManager.OnFaceDeselectEvent, OnDeselectMeshFace);
             UnityEventTools.AddVoidPersistentListener(modulesManager.OnModuleVariantsShowEvent, OnShowModuleVariants);
             UnityEventTools.AddVoidPersistentListener(modulesManager.OnModuleVariantsHideEvent, OnHideModuleVariants);
+
+            modulesManager.OnFaceSelectEvent.SetPersistentListenerState(
+                modulesManager.OnFaceSelectEvent.GetPersistentEventCount() - 1,
+                UnityEventCallState.EditorAndRuntime);
+            modulesManager.OnFaceDeselectEvent.SetPersistentListenerState(
+                modulesManager.OnFaceDeselectEvent.GetPersistentEventCount() - 1,
+                UnityEventCallState.EditorAndRuntime);
+            modulesManager.OnModuleVariantsShowEvent.SetPersistentListenerState(
+                modulesManager.OnModuleVariantsShowEvent.GetPersistentEventCount() - 1,
+                UnityEventCallState.EditorAndRuntime);
+            modulesManager.OnModuleVariantsHideEvent.SetPersistentListenerState(
+                modulesManager.OnModuleVariantsHideEvent.GetPersistentEventCount() - 1,
+                UnityEventCallState.EditorAndRuntime);
         }
 
         private void OnDrawGizmos()
@@ -151,8 +164,6 @@ namespace LevelGeneration
 
         public void OnShowModuleVariants()
         {
-            Debug.Log("OnShowModuleVariants");
-
             Renderer.enabled = false;
         }
 
@@ -164,7 +175,6 @@ namespace LevelGeneration
 
         public void OnHideModuleVariants()
         {
-            Debug.Log("OnHideModuleVariants");
             Renderer.enabled = true;
         }
 
