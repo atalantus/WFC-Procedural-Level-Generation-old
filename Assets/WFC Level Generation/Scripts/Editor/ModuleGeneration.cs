@@ -32,19 +32,14 @@ namespace WFCLevelGeneration.Editor
                 if (modulesInfo != null) return modulesInfo;
 
                 var m = AssetDatabase.LoadAssetAtPath<ModulesInfo>($"{ModulesPath}/ModulesInfo.asset");
+                modulesInfo = m;
+
                 if (m == null)
                 {
-                    Directory.CreateDirectory(
-                        $"{Application.dataPath.Remove(Application.dataPath.Length - 7)}/{ModulesPath}");
-                    AssetDatabase.CreateAsset(CreateInstance<ModulesInfo>(), $"{ModulesPath}/ModulesInfo.asset");
-                }
-                else
-                {
-                    modulesInfo = m;
-                    return modulesInfo;
+                    StopModuleGeneration();
+                    Debug.LogError($"ModulesInfo Asset not created at \"{ModulesPath}/ModulesInfo.asset\"");
                 }
 
-                modulesInfo = AssetDatabase.LoadAssetAtPath<ModulesInfo>($"{ModulesPath}/ModulesInfo.asset");
                 return modulesInfo;
             }
         }
@@ -140,6 +135,9 @@ namespace WFCLevelGeneration.Editor
                 //     return;
                 // }
 
+                // Get ModulesInfo
+                GetModulesInfo();
+
                 // Get ModulesManager
                 GetModulesManager();
 
@@ -157,6 +155,22 @@ namespace WFCLevelGeneration.Editor
             {
                 StopModuleGeneration();
                 Debug.LogError(e);
+            }
+        }
+
+        private void GetModulesInfo()
+        {
+            var m = AssetDatabase.LoadAssetAtPath<ModulesInfo>($"{ModulesPath}/ModulesInfo.asset");
+            if (m == null)
+            {
+                Directory.CreateDirectory(
+                    $"{Application.dataPath.Remove(Application.dataPath.Length - 7)}/{ModulesPath}");
+                AssetDatabase.CreateAsset(CreateInstance<ModulesInfo>(), $"{ModulesPath}/ModulesInfo.asset");
+                modulesInfo = AssetDatabase.LoadAssetAtPath<ModulesInfo>($"{ModulesPath}/ModulesInfo.asset");
+            }
+            else
+            {
+                modulesInfo = m;
             }
         }
 

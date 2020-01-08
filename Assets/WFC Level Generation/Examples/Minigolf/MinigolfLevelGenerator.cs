@@ -4,7 +4,13 @@
     {
         protected override void ApplyInitialConstraints()
         {
-            StandardConstraints.WorldBordersConstraint(ref cells, 1, 0, 0, 0, 0, 0);
+            StandardConstraints.WorldBordersConstraint(ref cells,
+                null,
+                null,
+                967653782,
+                967653782,
+                967653782,
+                967653782);
         }
     }
 }
