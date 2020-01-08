@@ -137,7 +137,7 @@ namespace LevelGeneration
             for (var i = 0; i < faces.Length; i++)
             {
                 var moduleFace = faces[i];
-                if (moduleFace.GetHashCode() == face.GetHashCode()) _shownFaceMeshes.Add(i);
+                if (moduleFace.faceHash == face.faceHash) _shownFaceMeshes.Add(i);
             }
         }
 
@@ -219,36 +219,15 @@ namespace LevelGeneration
 
             [SerializeField] private Vector3[] vertices;
             [SerializeField] public int[] triangles;
-            [SerializeField] private int hash;
+            [SerializeField] public int faceHash;
 
-            public ModuleFace(Mesh mesh, int hash)
+            public ModuleFace(Mesh mesh, int faceHash)
             {
                 _mesh = mesh;
                 vertices = mesh.vertices;
                 triangles = mesh.triangles;
 
-                this.hash = hash;
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is ModuleFace other && Equals(other);
-            }
-
-            public bool Equals(ModuleFace other)
-            {
-                return Mesh.Equals(other.Mesh);
-            }
-
-            public void SetHashCode(int hash)
-            {
-                this.hash = hash;
-            }
-
-            public override int GetHashCode()
-            {
-                // Unity doesn't serialize readonly fields!
-                return hash;
+                this.faceHash = faceHash;
             }
         }
     }

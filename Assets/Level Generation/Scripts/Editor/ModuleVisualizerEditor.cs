@@ -89,7 +89,7 @@ namespace LevelGeneration
                 GUILayout.Space(-5);
 
                 GUILayout.Label(
-                    $"({moduleVisualizer.faces[moduleVisualizer.selectedFaceMesh].GetHashCode().ToString()})");
+                    $"({moduleVisualizer.faces[moduleVisualizer.selectedFaceMesh].faceHash.ToString()})");
 
                 GUILayout.Space(8);
 
@@ -98,9 +98,9 @@ namespace LevelGeneration
                     var selectedFace = moduleVisualizer.selectedFaceMesh;
 
                     // update face hash
-                    moduleVisualizer.modulesInfo.RemoveFace(moduleVisualizer.faces[selectedFace].GetHashCode());
+                    moduleVisualizer.modulesInfo.RemoveFace(moduleVisualizer.faces[selectedFace].faceHash);
                     moduleVisualizer.modulesInfo.AddFace(0);
-                    moduleVisualizer.faces[selectedFace].SetHashCode(0);
+                    moduleVisualizer.faces[selectedFace].faceHash = 0;
 
                     // update module asset hashes
                     moduleVisualizer.UpdateModuleAssets(moduleVisualizer.selectedFaceMesh, 0);
@@ -115,10 +115,10 @@ namespace LevelGeneration
                     var selectedFace = moduleVisualizer.selectedFaceMesh;
 
                     // update face hash
-                    moduleVisualizer.modulesInfo.RemoveFace(moduleVisualizer.faces[selectedFace].GetHashCode());
+                    moduleVisualizer.modulesInfo.RemoveFace(moduleVisualizer.faces[selectedFace].faceHash);
                     var n = moduleVisualizer.modulesInfo.GenerateNewFaceId();
                     moduleVisualizer.modulesInfo.AddFace(n);
-                    moduleVisualizer.faces[selectedFace].SetHashCode(n);
+                    moduleVisualizer.faces[selectedFace].faceHash = n;
 
                     // update module asset hashes
                     moduleVisualizer.UpdateModuleAssets(moduleVisualizer.selectedFaceMesh, n);
@@ -141,9 +141,9 @@ namespace LevelGeneration
                         var selectedFace = moduleVisualizer.selectedFaceMesh;
 
                         // update face hash
-                        moduleVisualizer.modulesInfo.RemoveFace(moduleVisualizer.faces[selectedFace].GetHashCode());
+                        moduleVisualizer.modulesInfo.RemoveFace(moduleVisualizer.faces[selectedFace].faceHash);
                         moduleVisualizer.modulesInfo.AddFace(n);
-                        moduleVisualizer.faces[selectedFace].SetHashCode(n);
+                        moduleVisualizer.faces[selectedFace].faceHash = n;
 
                         // update module asset hashes
                         moduleVisualizer.UpdateModuleAssets(moduleVisualizer.selectedFaceMesh, n);
@@ -198,7 +198,7 @@ namespace LevelGeneration
                 var face = moduleVisualizer.faces[i];
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(25);
-                GUILayout.Label($"{_faceNames[i]} ({face.GetHashCode()})");
+                GUILayout.Label($"{_faceNames[i]} ({face.faceHash})");
                 GUILayout.EndHorizontal();
             }
 
@@ -209,7 +209,7 @@ namespace LevelGeneration
                 // remove faces from module info
                 foreach (var face in moduleVisualizer.faces)
                 {
-                    moduleVisualizer.modulesInfo.RemoveFace(face.GetHashCode());
+                    moduleVisualizer.modulesInfo.RemoveFace(face.faceHash);
                 }
 
                 // recalculate faces
@@ -223,8 +223,8 @@ namespace LevelGeneration
                 for (var i = 0; i < moduleVisualizer.faces.Length; i++)
                 {
                     var face = moduleVisualizer.faces[i];
-                    moduleVisualizer.modulesInfo.AddFace(face.GetHashCode());
-                    moduleVisualizer.UpdateModuleAssets(i, face.GetHashCode());
+                    moduleVisualizer.modulesInfo.AddFace(face.faceHash);
+                    moduleVisualizer.UpdateModuleAssets(i, face.faceHash);
                 }
             }
         }
