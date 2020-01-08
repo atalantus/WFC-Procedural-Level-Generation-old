@@ -9,9 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 17380f0747f346f7afdd0227d1b28eed, type: 3}
-  m_Name: ModulesInfo
+  m_Script: {fileID: 11500000, guid: a08ec4fa54b24848b30474ffcf163e6f, type: 3}
+  m_Name: horizontal
   m_EditorClassIdentifier: 
-  generatedConnections:
-    keys: 72b2f7860000000001000000
-    values: 090000001400000001000000
+  moduleGO: {fileID: 869815216712888190, guid: 6468180800dae95439a7b2ab91c14300, type: 3}
+  faceConnections: 72b2f786000000000000000072b2f7860000000000000000
