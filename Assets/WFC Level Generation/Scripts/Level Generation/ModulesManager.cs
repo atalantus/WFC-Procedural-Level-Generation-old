@@ -1,27 +1,29 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 namespace WFCLevelGeneration
 {
     [ExecuteInEditMode]
     public class ModulesManager : MonoBehaviour
     {
-        public OnFaceEvent OnFaceSelectEvent;
-        public OnFaceEvent OnFaceDeselectEvent;
-        public OnModuleVariantsEvent OnModuleVariantsShowEvent;
-        public OnModuleVariantsEvent OnModuleVariantsHideEvent;
+        public ModulesInfo modulesInfo;
+        public OnFaceEvent onFaceSelectEvent;
+        public OnFaceEvent onFaceDeselectEvent;
+        public OnModuleVariantsEvent onModuleVariantsShowEvent;
+        public OnModuleVariantsEvent onModuleVariantsHideEvent;
 
         private void Awake()
         {
-            if (OnFaceSelectEvent == null)
-                OnFaceSelectEvent = new OnFaceEvent();
-            if (OnFaceDeselectEvent == null)
-                OnFaceDeselectEvent = new OnFaceEvent();
-            if (OnModuleVariantsShowEvent == null)
-                OnModuleVariantsShowEvent = new OnModuleVariantsEvent();
-            if (OnModuleVariantsHideEvent == null)
-                OnModuleVariantsHideEvent = new OnModuleVariantsEvent();
+            if (onFaceSelectEvent == null)
+                onFaceSelectEvent = new OnFaceEvent();
+            if (onFaceDeselectEvent == null)
+                onFaceDeselectEvent = new OnFaceEvent();
+            if (onModuleVariantsShowEvent == null)
+                onModuleVariantsShowEvent = new OnModuleVariantsEvent();
+            if (onModuleVariantsHideEvent == null)
+                onModuleVariantsHideEvent = new OnModuleVariantsEvent();
         }
 
         [Serializable]

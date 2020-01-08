@@ -12,5 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a08ec4fa54b24848b30474ffcf163e6f, type: 3}
   m_Name: horizontal
   m_EditorClassIdentifier: 
-  moduleGO: {fileID: 869815216712888190, guid: 6468180800dae95439a7b2ab91c14300, type: 3}
+  moduleGO: {fileID: 3290544060845911592, guid: 6468180800dae95439a7b2ab91c14300,
+    type: 3}
   faceConnections: 72b2f786000000000000000072b2f7860000000000000000

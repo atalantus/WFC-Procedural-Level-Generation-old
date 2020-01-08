@@ -59,22 +59,22 @@ namespace WFCLevelGeneration
 
         public void RegisterEvents()
         {
-            UnityEventTools.AddPersistentListener(modulesManager.OnFaceSelectEvent, OnSelectMeshFace);
-            UnityEventTools.AddPersistentListener(modulesManager.OnFaceDeselectEvent, OnDeselectMeshFace);
-            UnityEventTools.AddVoidPersistentListener(modulesManager.OnModuleVariantsShowEvent, OnShowModuleVariants);
-            UnityEventTools.AddVoidPersistentListener(modulesManager.OnModuleVariantsHideEvent, OnHideModuleVariants);
+            UnityEventTools.AddPersistentListener(modulesManager.onFaceSelectEvent, OnSelectMeshFace);
+            UnityEventTools.AddPersistentListener(modulesManager.onFaceDeselectEvent, OnDeselectMeshFace);
+            UnityEventTools.AddVoidPersistentListener(modulesManager.onModuleVariantsShowEvent, OnShowModuleVariants);
+            UnityEventTools.AddVoidPersistentListener(modulesManager.onModuleVariantsHideEvent, OnHideModuleVariants);
 
-            modulesManager.OnFaceSelectEvent.SetPersistentListenerState(
-                modulesManager.OnFaceSelectEvent.GetPersistentEventCount() - 1,
+            modulesManager.onFaceSelectEvent.SetPersistentListenerState(
+                modulesManager.onFaceSelectEvent.GetPersistentEventCount() - 1,
                 UnityEventCallState.EditorAndRuntime);
-            modulesManager.OnFaceDeselectEvent.SetPersistentListenerState(
-                modulesManager.OnFaceDeselectEvent.GetPersistentEventCount() - 1,
+            modulesManager.onFaceDeselectEvent.SetPersistentListenerState(
+                modulesManager.onFaceDeselectEvent.GetPersistentEventCount() - 1,
                 UnityEventCallState.EditorAndRuntime);
-            modulesManager.OnModuleVariantsShowEvent.SetPersistentListenerState(
-                modulesManager.OnModuleVariantsShowEvent.GetPersistentEventCount() - 1,
+            modulesManager.onModuleVariantsShowEvent.SetPersistentListenerState(
+                modulesManager.onModuleVariantsShowEvent.GetPersistentEventCount() - 1,
                 UnityEventCallState.EditorAndRuntime);
-            modulesManager.OnModuleVariantsHideEvent.SetPersistentListenerState(
-                modulesManager.OnModuleVariantsHideEvent.GetPersistentEventCount() - 1,
+            modulesManager.onModuleVariantsHideEvent.SetPersistentListenerState(
+                modulesManager.onModuleVariantsHideEvent.GetPersistentEventCount() - 1,
                 UnityEventCallState.EditorAndRuntime);
         }
 
@@ -128,7 +128,7 @@ namespace WFCLevelGeneration
         {
             selectedFaceMesh = i;
 
-            modulesManager.OnFaceSelectEvent.Invoke(faces[selectedFaceMesh]);
+            modulesManager.onFaceSelectEvent.Invoke(faces[selectedFaceMesh]);
         }
 
         public void OnSelectMeshFace(ModuleFace face)
@@ -144,7 +144,7 @@ namespace WFCLevelGeneration
         {
             if (selectedFaceMesh == -1) return;
 
-            modulesManager.OnFaceDeselectEvent.Invoke(faces[selectedFaceMesh]);
+            modulesManager.onFaceDeselectEvent.Invoke(faces[selectedFaceMesh]);
 
             selectedFaceMesh = -1;
         }
@@ -157,7 +157,7 @@ namespace WFCLevelGeneration
         public void ShowModuleVariants()
         {
             showVariants = true;
-            modulesManager.OnModuleVariantsShowEvent.Invoke();
+            modulesManager.onModuleVariantsShowEvent.Invoke();
             Renderer.enabled = true;
         }
 
@@ -169,7 +169,7 @@ namespace WFCLevelGeneration
         public void HideModuleVariants()
         {
             showVariants = false;
-            modulesManager.OnModuleVariantsHideEvent.Invoke();
+            modulesManager.onModuleVariantsHideEvent.Invoke();
         }
 
         public void OnHideModuleVariants()

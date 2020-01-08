@@ -1,12 +1,12 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &8275017779461647171
+--- !u!114 &7469761529889107665
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4851001033736615443}
+  m_GameObject: {fileID: 206806432266980551}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42331610fea11884c829f4a855f3caa3, type: 3}
@@ -72,7 +72,7 @@ MonoBehaviour:
     - {x: -0.62499994, y: 0.875, z: -0.0000009105856}
     triangles: 00000000010000000200000000000000020000000300000004000000000000000300000005000000040000000300000005000000030000000600000005000000060000000700000008000000050000000700000009000000080000000700000009000000070000000a000000090000000a0000000b0000000c000000090000000b0000000d0000000c0000000b0000000d0000000b0000000e0000000d0000000e0000000f000000
     faceHash: -2030587278
---- !u!1001 &5187703357899238163
+--- !u!1001 &464682546270638535
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -102,17 +102,17 @@ PrefabInstance:
     - target: {fileID: 8710980922806655875, guid: 3eb4bfd7364f1a34ab679e51c7dc1ffb,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 8710980922806655875, guid: 3eb4bfd7364f1a34ab679e51c7dc1ffb,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 8710980922806655875, guid: 3eb4bfd7364f1a34ab679e51c7dc1ffb,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 8710980922806655875, guid: 3eb4bfd7364f1a34ab679e51c7dc1ffb,
         type: 3}
@@ -156,9 +156,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3eb4bfd7364f1a34ab679e51c7dc1ffb, type: 3}
---- !u!1 &4851001033736615443 stripped
+--- !u!1 &206806432266980551 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 336744174600789248, guid: 3eb4bfd7364f1a34ab679e51c7dc1ffb,
     type: 3}
-  m_PrefabInstance: {fileID: 5187703357899238163}
+  m_PrefabInstance: {fileID: 464682546270638535}
   m_PrefabAsset: {fileID: 0}

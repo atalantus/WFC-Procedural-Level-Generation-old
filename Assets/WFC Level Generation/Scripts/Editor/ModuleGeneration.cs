@@ -22,7 +22,6 @@ namespace WFCLevelGeneration.Editor
         private int _i;
 
         private string _progressBarInfo = "";
-        private Vector2 _scrollPosScene;
         private Vector2 _scrollPosEditor;
         private int _modulesSceneCount = 0;
 
@@ -56,17 +55,6 @@ namespace WFCLevelGeneration.Editor
         public static void ShowWindow()
         {
             GetWindow<ModuleGeneration>(false, "Generate Modules");
-        }
-
-        private void OnFocus()
-        {
-            SceneView.duringSceneGui -= OnSceneGUI;
-            SceneView.duringSceneGui += OnSceneGUI;
-        }
-
-        private void OnDestroy()
-        {
-            SceneView.duringSceneGui -= OnSceneGUI;
         }
 
         private void OnGUI()
@@ -122,7 +110,6 @@ namespace WFCLevelGeneration.Editor
                 // Setup ModulesInfo asset
                 if (AssetDatabase.LoadAssetAtPath<ModulesInfo>($"{ModulesPath}/ModulesInfo.asset") == null)
                 {
-                    Debug.Log("Create Info Asset.");
                     // Create Module Connections Asset
                     AssetDatabase.CreateAsset(CreateInstance<ModulesInfo>(), $"{ModulesPath}/ModulesInfo.asset");
                 }
@@ -181,6 +168,7 @@ namespace WFCLevelGeneration.Editor
                 var mm = new GameObject("_ModulesManager");
                 mm.AddComponent<ModulesManager>();
                 _modulesManager = mm.GetComponent<ModulesManager>();
+                _modulesManager.modulesInfo = ModulesInfo;
             }
         }
 
@@ -249,6 +237,7 @@ namespace WFCLevelGeneration.Editor
 
                         // Create master prefab
                         masterPrefab = PrefabUtility.InstantiatePrefab(modelSources[_i]) as GameObject;
+                        masterPrefab.transform.parent = _modulesManager.transform;
                         if (masterPrefab != null)
                         {
                             masterVisualizer = masterPrefab.AddComponent<ModuleVisualizer>();
@@ -439,49 +428,6 @@ namespace WFCLevelGeneration.Editor
             EditorGUILayout.EndScrollView();
 
             serialObj.ApplyModifiedProperties();
-        }
-
-        /// <summary>
-        /// Draw Editor Window's scene GUI
-        /// </summary>
-        /// <param name="sceneView"></param>
-        private void OnSceneGUI(SceneView sceneView)
-        {
-            Handles.BeginGUI();
-            GUILayout.BeginArea(new Rect(Screen.width - 160, Screen.height - 295, 150, 250),
-                new GUIStyle(GUI.skin.box));
-
-            GUILayout.Label("Face Filters:", EditorStyles.boldLabel);
-
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Toggle all", GUILayout.Width(100))) Debug.Log("Toggle all");
-
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-
-            GUILayout.Space(2);
-
-            if (ModulesInfo != null)
-            {
-                _scrollPosScene = GUILayout.BeginScrollView(_scrollPosScene, false, false, GUILayout.Width(146),
-                    GUILayout.Height(200));
-
-                foreach (var faceConnection in ModulesInfo.generatedConnections)
-                    GUILayout.Toggle(false, $"{faceConnection.Key} ({faceConnection.Value})");
-
-                GUILayout.EndScrollView();
-            }
-            else
-            {
-                GUI.skin.label.wordWrap = true;
-                GUILayout.Label(
-                    "Make sure you have a ModuleConnections Asset storing the different face connections. " +
-                    "\nUse the \"Generate Modules\" editor window to automatically generate this asset.");
-            }
-
-            GUILayout.EndArea();
-            Handles.EndGUI();
         }
 
         /// <summary>
