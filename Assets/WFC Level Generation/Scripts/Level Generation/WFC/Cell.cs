@@ -22,13 +22,11 @@ namespace WFCLevelGeneration
         /// <summary>
         /// Was the module object already instantiated
         /// </summary>
-        [HideInInspector]
         public bool _isCellSet;
 
         /// <summary>
         /// Holds the still possible modules
         /// </summary>
-        [HideInInspector]
         public List<Module> possibleModules;
 
         /// <summary>
@@ -40,7 +38,6 @@ namespace WFCLevelGeneration
         /// The adjacent cells (forward, up, right, back, down, left)
         /// Element can be null if the cell is on the grid`s edge
         /// </summary>
-        [HideInInspector]
         public Cell[] neighbourCells = new Cell[6];
 
         /// <summary>
@@ -200,8 +197,7 @@ namespace WFCLevelGeneration
             _levelGenerator.orderedCells.UpdateItem(this);
 
             // Instantiate module game object
-            var go = Instantiate(module.moduleGO, transform.position,
-                Quaternion.identity);
+            var go = Instantiate(module.moduleGO, transform.position, module.moduleGO.transform.rotation);
             go.transform.parent = transform;
 
             _isCellSet = true;
