@@ -231,7 +231,7 @@ namespace WFCLevelGeneration
                         ++c;
                     }
 
-                    Debug.LogError("Couldn't backtrack far enough!");
+                    Debug.LogWarning("Couldn't backtrack far enough!");
                 }
                 else
                 {
