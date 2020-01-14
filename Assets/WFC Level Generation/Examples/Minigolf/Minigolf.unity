@@ -269,8 +269,8 @@ MonoBehaviour:
   runInExtraThread: 1
   validateCellAdjacency: 1
   debugOutputLevel: 2
-  seed: -1
-  dimensions: {x: 5, y: 1, z: 5}
+  seed: 2171890
+  dimensions: {x: 2, y: 1, z: 1}
   cellPrefab: {fileID: 2559029275105754374, guid: 645c8b666adf28b439b714c59bb6e240,
     type: 3}
 --- !u!4 &171234834

@@ -229,9 +229,9 @@ namespace WFCLevelGeneration
                         if (cell.RemoveModule(cell.possibleModules[i])) break;
 
                         ++c;
-                    }
 
-                    Debug.LogWarning("Couldn't backtrack far enough!");
+                        if (c == mLength) Debug.LogWarning("Couldn't backtrack far enough!");
+                    }
                 }
                 else
                 {
@@ -318,13 +318,17 @@ namespace WFCLevelGeneration
         /// Resolve all initial constraints
         /// </summary>
         /// <param name="cells">The grid`s cells</param>
-        protected virtual void ApplyInitialConstraints() {}
+        protected virtual void ApplyInitialConstraints()
+        {
+        }
 
         /// <summary>
         /// Resolve all final constraints
         /// </summary>
         /// <param name="cells">The grid`s cells</param>
-        protected virtual void ApplyFinalConstraints() {}
+        protected virtual void ApplyFinalConstraints()
+        {
+        }
 
         #endregion
 
