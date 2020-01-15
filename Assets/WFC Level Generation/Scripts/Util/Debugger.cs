@@ -2,7 +2,7 @@
 
 namespace WFCLevelGeneration.Util
 {
-    public static class DebugLogger
+    public static class Debugger
     {
         public static void Log(string msg, LevelGenerator.DebugOutputLevels msgLevel,
             LevelGenerator.DebugOutputLevels setLevel, GameObject caller)
@@ -15,7 +15,7 @@ namespace WFCLevelGeneration.Util
                     Debug.Log($"<color=blue>{msg}</color>", caller);
                     break;
                 case LevelGenerator.DebugOutputLevels.All:
-                    Debug.Log(msg, caller);
+                    Debug.Log($"{caller.name} | {msg}", caller);
                     break;
             }
         }

@@ -1,4 +1,6 @@
-﻿namespace WFCLevelGeneration.Examples
+﻿using UnityEngine;
+
+namespace WFCLevelGeneration.Examples
 {
     public class MinigolfLevelGenerator : LevelGenerator
     {
@@ -11,6 +13,12 @@
                 967653782,
                 967653782,
                 967653782);
+        }
+
+        private void Start()
+        {
+            if (Application.isPlaying)
+                GenerateLevel();
         }
     }
 }

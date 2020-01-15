@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using WFCLevelGeneration.Util;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 namespace WFCLevelGeneration
@@ -20,9 +21,14 @@ namespace WFCLevelGeneration
         public int SolvedScore => possibleModules.Count;
 
         /// <summary>
+        /// The placed GameObject
+        /// </summary>
+        public GameObject placedModule;
+
+        /// <summary>
         /// Was the module object already instantiated
         /// </summary>
-        public bool _isCellSet;
+        public bool isCellSet;
 
         /// <summary>
         /// Holds the still possible modules
@@ -73,9 +79,9 @@ namespace WFCLevelGeneration
         /// <param name="mustFit">When set to true filter all modules that do not fit the filter. When set to false it's the opposite.</param>
         public bool FilterCell(FaceFilter faceFilter, bool mustFit)
         {
-            var cellState = new CellState(possibleModules, _isCellSet);
+            var cellState = new CellState(possibleModules, isCellSet);
 
-            DebugLogger.Log($"FilterCell({faceFilter.ToString()}, {mustFit})",
+            Debugger.Log($"FilterCell({faceFilter.ToString()}, {mustFit})",
                 LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
             if (SolvedScore == 1) return true;
@@ -86,10 +92,6 @@ namespace WFCLevelGeneration
             for (var i = 0; i < possibleModules.Count; i++)
             {
                 var module = possibleModules[i];
-
-                DebugLogger.Log(
-                    $"Checking {module.moduleGO.name} for face filter {faceFilter.ToString()} with \"mustFit\": {mustFit}",
-                    LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
                 var isImpossible = module.CheckModule(faceFilter);
 
@@ -112,19 +114,20 @@ namespace WFCLevelGeneration
                 }
             }
 
-            if (SolvedScore == 1 && !_isCellSet)
+            if (SolvedScore == 1 && !isCellSet)
             {
-                SetModule(possibleModules[0]);
+                if (!SetModule(possibleModules[0]))
+                {
+                    // add reset entry to cell history
+                    _levelGenerator.cellHistories.Add(new CellHistory(CellHistory.CellActions.Reset, this));
+                    ResetErrorState(cellState);
+                    return false;
+                }
             }
             else if (SolvedScore <= 0)
             {
                 ResetErrorState(cellState);
                 return false;
-                /*
-                Debug.LogError(
-                    $"Impossible Map! No fitting module could be found for {name}. solved Score: {SolvedScore}",
-                    gameObject);
-                    */
             }
 
             return true;
@@ -136,9 +139,9 @@ namespace WFCLevelGeneration
         /// </summary>
         public bool RemoveModule(Module module)
         {
-            var cellState = new CellState(possibleModules, _isCellSet);
+            var cellState = new CellState(possibleModules, isCellSet);
 
-            DebugLogger.Log($"{gameObject.name} | RemoveModule({module.moduleGO.name})",
+            Debugger.Log($"RemoveModule({module.moduleGO.name})",
                 LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
             // Remove module from possibility space
@@ -165,7 +168,7 @@ namespace WFCLevelGeneration
 
                 if (lastWithFaceId)
                 {
-                    DebugLogger.Log($"{gameObject.name} | Last face({j}, {faceId.ToString()})",
+                    Debugger.Log($"Last face({j}, {faceId.ToString()})",
                         LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
                     // Populate face changes to neighbour cell
@@ -186,9 +189,9 @@ namespace WFCLevelGeneration
         /// <summary>
         /// Assigns this cell one specific module and automatically removes all other possibilities.
         /// </summary>
-        public void SetModule(Module module)
+        public bool SetModule(Module module)
         {
-            DebugLogger.Log($"Set cell {name}!", LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel,
+            Debugger.Log("Set cell!", LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel,
                 gameObject);
 
             possibleModules = new List<Module> {module};
@@ -196,11 +199,19 @@ namespace WFCLevelGeneration
             // Update item on the heap
             _levelGenerator.orderedCells.UpdateItem(this);
 
-            // Instantiate module game object
-            var go = Instantiate(module.moduleGO, transform.position, module.moduleGO.transform.rotation);
-            go.transform.parent = transform;
+            // add entry to cell history
+            _levelGenerator.cellHistories.Add(new CellHistory(CellHistory.CellActions.Set, this));
 
-            _isCellSet = true;
+            isCellSet = true;
+
+            // Check if it fits to already set neighbour cells
+            for (var i = 0; i < neighbourCells.Length; i++)
+            {
+                if (neighbourCells[i] == null || !neighbourCells[i].isCellSet) continue;
+
+                if (module.faceConnections[i] != neighbourCells[i].possibleModules[0].faceConnections[(i + 3) % 6])
+                    return false;
+            }
 
             // Propagate changes to neighbours
             for (var i = 0; i < neighbourCells.Length; i++)
@@ -210,8 +221,12 @@ namespace WFCLevelGeneration
                 // This face id was chosen from this face
                 // Populate face changes to neighbour cell
                 var faceFilter = new FaceFilter((FaceFilter.FaceDirections) i, module.faceConnections[i]);
-                neighbourCells[i].FilterCell(faceFilter, true);
+                var success = neighbourCells[i].FilterCell(faceFilter, true);
+
+                if (!success) return false;
             }
+
+            return true;
         }
 
         /// <summary>
@@ -230,7 +245,7 @@ namespace WFCLevelGeneration
         {
             // Reset cell on error state and backtrack!
             possibleModules = cellState.possibleModulesState;
-            _isCellSet = cellState.isCellSetState;
+            isCellSet = cellState.isCellSetState;
 
             // Update item on the heap
             _levelGenerator.orderedCells.UpdateItem(this);

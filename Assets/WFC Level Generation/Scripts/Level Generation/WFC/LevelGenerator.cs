@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using WFCLevelGeneration.Util;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using Debugger = WFCLevelGeneration.Util.Debugger;
+using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace WFCLevelGeneration
@@ -55,6 +59,12 @@ namespace WFCLevelGeneration
         public bool validateCellAdjacency = false;
 
         /// <summary>
+        /// The time in seconds between placing the final module in the cell.
+        /// </summary>
+        [Tooltip("The time in seconds between placing the final module in the cell.")]
+        public float modulePlacingStepTime = 0f;
+
+        /// <summary>
         /// Sets level of debug output.
         /// </summary>
         [Tooltip(
@@ -102,12 +112,23 @@ namespace WFCLevelGeneration
         /// <summary>
         /// Cells matrix ([width, height, depth])
         /// </summary>
-        [HideInInspector] public Cell[,,] cells;
+        [Space(15)]
+        [Header("Debugging")]
+        public Cell[,,] cells;
+
+        /// <summary>
+        /// The wfc algorithms cell history
+        /// </summary>
+        public List<CellHistory> cellHistories;
 
         /// <summary>
         /// Stores the cells in a heap having the closest cell to being solved as first element
         /// </summary>
-        [HideInInspector] public Heap<Cell> orderedCells;
+        public Heap<Cell> orderedCells;
+
+        // TODO
+        private Cell backtrackLastCell;
+        private int backtrackLastCellScore;
 
         #endregion
 
@@ -137,15 +158,16 @@ namespace WFCLevelGeneration
         #region WFC-Methods
 
         /// <summary>
-        /// Wave-function-collapse algorithm
-        /// TODO: Could be multithreaded to increase performance
+        /// Executes the Wave-function-collapse algorithm
         /// </summary>
-        public void GenerateLevelWFC()
+        private void WaveFunctionCollapse()
         {
             var wfcSeed = seed != -1 ? seed : Environment.TickCount;
 
             // Set RNG seed
             Random.InitState(wfcSeed);
+
+            cellHistories = new List<CellHistory>();
 
             // Instantiate cells heap
             orderedCells = new Heap<Cell>(cells.GetLength(0) * cells.GetLength(1) * cells.GetLength(2));
@@ -165,14 +187,14 @@ namespace WFCLevelGeneration
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            DebugLogger.Log($"Starting Wave-function-collapse algorithm with Seed {wfcSeed}", DebugOutputLevels.All,
+            Debugger.Log($"Starting Wave-function-collapse algorithm with Seed {wfcSeed}", DebugOutputLevels.All,
                 debugOutputLevel,
                 gameObject);
 
             var applyInitConstr = new Stopwatch();
             applyInitConstr.Start();
 
-            DebugLogger.Log("Applying initial constraints", DebugOutputLevels.All, debugOutputLevel, gameObject);
+            Debugger.Log("Applying initial constraints", DebugOutputLevels.All, debugOutputLevel, gameObject);
 
             // Make sure the level fits our initial constraints
             ApplyInitialConstraints();
@@ -182,7 +204,7 @@ namespace WFCLevelGeneration
             // Wave-function-collapse Algorithm
             while (true)
             {
-                DebugLogger.Log("Starting another iteration! Removing next module.", DebugOutputLevels.All,
+                Debugger.Log("Starting another iteration! Removing next module.", DebugOutputLevels.All,
                     debugOutputLevel, gameObject);
 
                 // Remove finished cells from heap
@@ -197,13 +219,15 @@ namespace WFCLevelGeneration
 
                     if (cell.SolvedScore == 1)
                     {
-                        if (cell._isCellSet)
+                        if (cell.isCellSet)
                         {
                             orderedCells.RemoveFirst();
                         }
                         else
                         {
-                            cell.SetModule(cell.possibleModules[0]);
+                            if (!cell.SetModule(cell.possibleModules[0]))
+                                Debug.LogError($"Backtrack Error while setting module {cell}!");
+
                             goto iteration_end;
                         }
                     }
@@ -218,6 +242,15 @@ namespace WFCLevelGeneration
                 {
                     var cell = orderedCells.GetFirst();
 
+                    if (backtrackLastCell == cell && backtrackLastCellScore == cell.SolvedScore)
+                    {
+                        Debug.LogError($"Infinite Loop prevention on {cell.name} with {cell.SolvedScore}!");
+                        return;
+                    }
+
+                    backtrackLastCell = cell;
+                    backtrackLastCellScore = cell.SolvedScore;
+
                     var c = 0;
                     var mLength = cell.possibleModules.Count;
                     var i = Random.Range(0, cell.possibleModules.Count);
@@ -230,7 +263,8 @@ namespace WFCLevelGeneration
 
                         ++c;
 
-                        if (c == mLength) Debug.LogWarning("Couldn't backtrack far enough!");
+                        if (c == mLength)
+                            Debug.LogWarning($"Couldn't backtrack far enough {cell.name} with {cell.SolvedScore}!");
                     }
                 }
                 else
@@ -245,7 +279,7 @@ namespace WFCLevelGeneration
             var finishLevelStpwtch = new Stopwatch();
             finishLevelStpwtch.Start();
 
-            DebugLogger.Log("Applying final constraints", DebugOutputLevels.All, debugOutputLevel, gameObject);
+            Debugger.Log("Applying final constraints", DebugOutputLevels.All, debugOutputLevel, gameObject);
 
             // Add end constraints
             ApplyFinalConstraints();
@@ -254,16 +288,38 @@ namespace WFCLevelGeneration
 
             stopwatch.Stop();
 
-            DebugLogger.Log($"Applying initial constraints took {applyInitConstr.Elapsed.TotalMilliseconds}ms",
+            Debugger.Log($"Applying initial constraints took {applyInitConstr.Elapsed.TotalMilliseconds}ms",
                 DebugOutputLevels.Runtime, debugOutputLevel, gameObject);
-            DebugLogger.Log(
+            Debugger.Log(
                 $"Applying final constraints took {finishLevelStpwtch.Elapsed.TotalMilliseconds}ms",
                 DebugOutputLevels.Runtime, debugOutputLevel, gameObject);
-            DebugLogger.Log(
+            Debugger.Log(
                 $"Complete Wave-function-collapse algorithm finished in {stopwatch.Elapsed.TotalMilliseconds}ms (Seed: {wfcSeed})",
                 DebugOutputLevels.Runtime, debugOutputLevel, gameObject);
 
+            if (modulePlacingStepTime > 0f && Application.isPlaying) StartCoroutine(PlaceFinalModulesDebug());
+            else PlaceFinalModules();
+
             if (validateCellAdjacency) CheckGeneratedLevel();
+        }
+
+        private void PlaceFinalModules()
+        {
+            for (var i = 0; i < cellHistories.Count; i++)
+            {
+                if (cellHistories[i].action == CellHistory.CellActions.Reset) continue;
+                cellHistories[i].Execute();
+            }
+        }
+
+        IEnumerator PlaceFinalModulesDebug()
+        {
+            foreach (var cellHistory in cellHistories)
+            {
+                cellHistory.Execute();
+
+                yield return new WaitForSeconds(modulePlacingStepTime);
+            }
         }
 
         /// <summary>
@@ -428,7 +484,7 @@ namespace WFCLevelGeneration
             GenerateGrid();
 
             // Wave-function-collapse algorithm
-            GenerateLevelWFC();
+            WaveFunctionCollapse();
         }
 
         /// <summary>
@@ -463,5 +519,42 @@ namespace WFCLevelGeneration
         /// The subset of possible modules for this cell
         /// </summary>
         public Module[] cellModules;
+    }
+
+    [Serializable]
+    public class CellHistory
+    {
+        public enum CellActions
+        {
+            Set,
+            Reset
+        }
+
+        public CellActions action;
+        public Cell cell;
+
+        public CellHistory(CellActions action, Cell cell)
+        {
+            this.action = action;
+            this.cell = cell;
+        }
+
+        public void Execute()
+        {
+            switch (action)
+            {
+                case CellActions.Set:
+                    // Instantiate module game object
+                    var moduleGo = cell.possibleModules[0].moduleGO;
+                    var go = Object.Instantiate(moduleGo, cell.transform.position, moduleGo.transform.rotation);
+                    go.transform.parent = cell.transform;
+                    cell.placedModule = go;
+                    break;
+                case CellActions.Reset:
+                    if (Application.isPlaying) Object.Destroy(cell.placedModule);
+                    else Object.DestroyImmediate(cell.placedModule);
+                    break;
+            }
+        }
     }
 }
