@@ -31,7 +31,7 @@ namespace WFCLevelGeneration
                         new FaceFilter(i == 0 ? FaceFilter.FaceDirections.Up : FaceFilter.FaceDirections.Down,
                             i == 0 ? floorCnstr.Value : ceilingCnstr.Value), true))
                         Debug.LogError(
-                            $"Error resolving {(i == 0 ? "Floor" : "Ceiling")} in WorldBordersConstraint");
+                            $"Error resolving {(i == 0 ? "Floor" : "Ceiling")} in WorldBordersConstraint at {c.name}");
                 }
             }
 
@@ -49,7 +49,7 @@ namespace WFCLevelGeneration
                         new FaceFilter(i == 0 ? FaceFilter.FaceDirections.Forward : FaceFilter.FaceDirections.Back,
                             i == 0 ? backCnstr.Value : forwardCnstr.Value), true))
                         Debug.LogError(
-                            $"Error resolving {(i == 0 ? "Back" : "Forward")} in WorldBordersConstraint");
+                            $"Error resolving {(i == 0 ? "Back" : "Forward")} in WorldBordersConstraint at {c.name}");
                 }
             }
 
@@ -67,7 +67,7 @@ namespace WFCLevelGeneration
                         new FaceFilter(i == 0 ? FaceFilter.FaceDirections.Right : FaceFilter.FaceDirections.Left,
                             i == 0 ? leftConstr.Value : rightCnstr.Value), true))
                         Debug.LogError(
-                            $"Error resolving {(i == 0 ? "Left" : "Right")} in WorldBordersConstraint");
+                            $"Error resolving {(i == 0 ? "Left" : "Right")} in WorldBordersConstraint at {c.name}");
                 }
             }
         }

@@ -11,7 +11,7 @@ namespace WFCLevelGeneration
     /// Acts as placeholder for the modules possibility space.
     /// </summary>
     [ExecuteInEditMode]
-    public class Cell : MonoBehaviour, IHeapItem<Cell>
+    public class Cell : MonoBehaviour
     {
         #region Attributes
 
@@ -46,11 +46,6 @@ namespace WFCLevelGeneration
         /// </summary>
         public Cell[] neighbourCells = new Cell[6];
 
-        /// <summary>
-        /// Heap Index
-        /// </summary>
-        public int HeapIndex { get; set; }
-
         #endregion
 
         #region Methods
@@ -72,6 +67,13 @@ namespace WFCLevelGeneration
             for (var i = 0; i < possibleModules.Length; i++) this.possibleModules.Add(possibleModules[i]);
         }
 
+        public void ResetCellState(CellState cellState)
+        {
+            // Reset cell on error state and backtrack!
+            possibleModules = cellState.possibleModulesState;
+            isCellSet = cellState.isCellSetState;
+        }
+
         /// <summary>
         /// Filters a cell for a given face filter.
         /// </summary>
@@ -79,13 +81,13 @@ namespace WFCLevelGeneration
         /// <param name="mustFit">When set to true filter all modules that do not fit the filter. When set to false it's the opposite.</param>
         public bool FilterCell(FaceFilter faceFilter, bool mustFit)
         {
-            var cellState = new CellState(possibleModules, isCellSet);
-
             Debugger.Log($"FilterCell({faceFilter.ToString()}, {mustFit})",
                 LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
+            // this cell is already set
             if (SolvedScore == 1) return true;
 
+            // modules to remove by the given filter predicate
             var removingModules = new List<Module>();
 
             // Filter possible Modules list for the given filter
@@ -98,36 +100,19 @@ namespace WFCLevelGeneration
                 if (mustFit) isImpossible = !isImpossible;
 
                 if (isImpossible)
-                    // Remove module
+                    // add module to remove list
                     removingModules.Add(possibleModules[i]);
             }
 
-            // Now remove filtered modules
+            // remove all filtered modules
             for (var i = 0; i < removingModules.Count; i++)
             {
-                var successState = RemoveModule(removingModules[i]);
+                var success = RemoveModule(removingModules[i]);
 
-                if (!successState)
+                if (!success)
                 {
-                    ResetErrorState(cellState);
                     return false;
                 }
-            }
-
-            if (SolvedScore == 1 && !isCellSet)
-            {
-                if (!SetModule(possibleModules[0]))
-                {
-                    // add reset entry to cell history
-                    _levelGenerator.cellHistories.Add(new CellHistory(CellHistory.CellActions.Reset, this));
-                    ResetErrorState(cellState);
-                    return false;
-                }
-            }
-            else if (SolvedScore <= 0)
-            {
-                ResetErrorState(cellState);
-                return false;
             }
 
             return true;
@@ -139,26 +124,21 @@ namespace WFCLevelGeneration
         /// </summary>
         public bool RemoveModule(Module module)
         {
-            var cellState = new CellState(possibleModules, isCellSet);
-
             Debugger.Log($"RemoveModule({module.moduleGO.name})",
                 LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
             // Remove module from possibility space
             possibleModules.Remove(module);
 
-            // Update item on the heap
-            _levelGenerator.orderedCells.UpdateItem(this);
-
+            // Check for each neighbour
             for (var j = 0; j < neighbourCells.Length; j++)
             {
-                // Only check if cell actually has a neighbour on this face
                 if (neighbourCells[j] == null) continue;
 
                 var faceId = module.faceConnections[j];
                 var lastWithFaceId = true;
 
-                // Search in other possible modules for the same face id on the same face
+                // Search in other possible modules for the same face id on the same face direction
                 for (var i = 0; i < possibleModules.Count; i++)
                     if (possibleModules[i].faceConnections[j] == faceId)
                     {
@@ -168,16 +148,18 @@ namespace WFCLevelGeneration
 
                 if (lastWithFaceId)
                 {
+                    // The removed module was the last with this specific face id for this face direction
+                    // populate changes to facing neighbour
                     Debugger.Log($"Last face({j}, {faceId.ToString()})",
                         LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
 
-                    // Populate face changes to neighbour cell
                     var faceFilter = new FaceFilter((FaceFilter.FaceDirections) j, faceId);
-                    var successState = neighbourCells[j].FilterCell(faceFilter, false);
 
-                    if (!successState)
+                    // populate face changes to neighbour cell
+                    var success = neighbourCells[j].FilterCell(faceFilter, false);
+
+                    if (!success)
                     {
-                        ResetErrorState(cellState);
                         return false;
                     }
                 }
@@ -187,24 +169,23 @@ namespace WFCLevelGeneration
         }
 
         /// <summary>
-        /// Assigns this cell one specific module and automatically removes all other possibilities.
+        /// Assigns this cell the first module and automatically removes all other possibilities.
         /// </summary>
-        public bool SetModule(Module module)
+        public bool SetLastModule()
         {
+            var module = possibleModules[0];
+
             Debugger.Log("Set cell!", LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel,
                 gameObject);
 
+            // set cell state
             possibleModules = new List<Module> {module};
-
-            // Update item on the heap
-            _levelGenerator.orderedCells.UpdateItem(this);
-
-            // add entry to cell history
-            _levelGenerator.cellHistories.Add(new CellHistory(CellHistory.CellActions.Set, this));
-
             isCellSet = true;
 
-            // Check if it fits to already set neighbour cells
+            // add "set" entry to cell histories
+            _levelGenerator.cellHistories.Add(new CellHistory(CellHistory.CellActions.Set, this, module));
+
+            // Check if it actually fits to already set neighbour cells
             for (var i = 0; i < neighbourCells.Length; i++)
             {
                 if (neighbourCells[i] == null || !neighbourCells[i].isCellSet) continue;
@@ -229,60 +210,17 @@ namespace WFCLevelGeneration
             return true;
         }
 
-        /// <summary>
-        /// Removes a module without populating possible changes to neighbouring cells
-        /// </summary>
-        public void SimpleRemoveModule(Module module)
-        {
-            // Remove module from possibility space
-            possibleModules.Remove(module);
-
-            // Update item on the heap
-            _levelGenerator.orderedCells.UpdateItem(this);
-        }
-
-        private void ResetErrorState(CellState cellState)
-        {
-            // Reset cell on error state and backtrack!
-            possibleModules = cellState.possibleModulesState;
-            isCellSet = cellState.isCellSetState;
-
-            // Update item on the heap
-            _levelGenerator.orderedCells.UpdateItem(this);
-        }
-
-        /// <summary>
-        /// Compares two cells using their solved score
-        /// TODO: Module heuristics
-        /// </summary>
-        /// <param name="other">Cell to compare</param>
-        /// <returns></returns>
-        public int CompareTo(Cell other)
-        {
-            var compare = SolvedScore.CompareTo(other.SolvedScore);
-            if (compare == 0)
-            {
-                var r = Random.Range(1, 3);
-                return r == 1 ? -1 : 1;
-            }
-
-            return -compare;
-        }
-
         #endregion
 
-        private struct CellState
+        public struct CellState
         {
-            public List<Module> possibleModulesState;
+            public readonly List<Module> possibleModulesState;
+            public readonly bool isCellSetState;
 
-            public bool isCellSetState;
-
-            // TODO: Save heap state?
-
-            public CellState(List<Module> possibleModulesState, bool isCellSetState)
+            public CellState(Cell cell)
             {
-                this.possibleModulesState = new List<Module>(possibleModulesState);
-                this.isCellSetState = isCellSetState;
+                this.possibleModulesState = new List<Module>(cell.possibleModules);
+                this.isCellSetState = cell.isCellSet;
             }
         }
     }

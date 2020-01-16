@@ -98,21 +98,12 @@ namespace WFCLevelGeneration
         [Tooltip("The generation seed. -1 means a random seed will be chosen.")]
         public int seed = -1;
 
-       
-
         /// <summary>
         /// The wfc algorithms cell history
         /// </summary>
         public List<CellHistory> cellHistories;
 
-        /// <summary>
-        /// Stores the cells in a heap having the closest cell to being solved as first element
-        /// </summary>
-        public Heap<Cell> orderedCells;
-
-        // TODO
-        private Cell backtrackLastCell;
-        private int backtrackLastCellScore;
+        private System.Random _rng;
 
         #endregion
 
@@ -139,6 +130,98 @@ namespace WFCLevelGeneration
         {
         }
 
+        private bool RemoveModule(List<Cell> previousCells)
+        {
+            var sortedCells = new List<Cell>(previousCells);
+
+            // sort cells
+            sortedCells.Sort((c1, c2) => c1.SolvedScore.CompareTo(c2.SolvedScore));
+
+            // get cell to change in this step
+            while (sortedCells.Count > 0)
+            {
+                var cell = sortedCells[0];
+
+                if (cell.SolvedScore > 1 || !cell.isCellSet)
+                {
+                    break;
+                }
+
+                // this cell is already set
+                sortedCells.RemoveAt(0);
+            }
+
+            if (sortedCells.Count == 0)
+            {
+                // every cell is already set
+                // we're done
+                return true;
+            }
+
+            // try changing the chosen cell
+            if (sortedCells[0].SolvedScore == 1)
+            {
+                // try setting this cell
+                var success = sortedCells[0].SetLastModule();
+
+                if (!success)
+                {
+                    cellHistories.Add(new CellHistory(CellHistory.CellActions.Reset, sortedCells[0],
+                        sortedCells[0].possibleModules[0]));
+                    return false;
+                }
+
+                success = RemoveModule(sortedCells);
+
+                if (!success)
+                {
+                    cellHistories.Add(new CellHistory(CellHistory.CellActions.Reset, sortedCells[0],
+                        sortedCells[0].possibleModules[0]));
+                }
+
+                return success;
+            }
+
+            // save cell states
+            var sortedCellsStates = new Cell.CellState[sortedCells.Count];
+
+            for (var i = 0; i < sortedCells.Count; i++)
+            {
+                sortedCellsStates[i] = new Cell.CellState(sortedCells[i]);
+            }
+
+            // try every cell sorted after their entropy until success
+            foreach (var cell in sortedCells)
+            {
+                // remove modules from this cell until success
+                var modules = new List<Module>(cell.possibleModules).ToArray();
+                _rng.Shuffle(modules);
+
+                foreach (var module in modules)
+                {
+                    if (cell.RemoveModule(module))
+                    {
+                        var success = RemoveModule(sortedCells);
+
+                        if (success) return true;
+                    }
+
+                    // removing this module didn't work
+                    // reset cell states and try next module
+                    for (var i = 0; i < sortedCells.Count; i++)
+                    {
+                        sortedCells[i].ResetCellState(sortedCellsStates[i]);
+                    }
+                }
+
+                // no module of this cell works
+                // try next cell in entropy sorted list
+            }
+
+            // nothing worked :(
+            return false;
+        }
+
         /// <summary>
         /// Executes the Wave-function-collapse algorithm
         /// </summary>
@@ -147,12 +230,12 @@ namespace WFCLevelGeneration
             var wfcSeed = seed != -1 ? seed : Environment.TickCount;
 
             // Set RNG seed
-            Random.InitState(wfcSeed);
+            _rng = new System.Random(wfcSeed);
 
             cellHistories = new List<CellHistory>();
 
-            // Instantiate cells heap
-            orderedCells = new Heap<Cell>(cells.GetLength(0) * cells.GetLength(1) * cells.GetLength(2));
+            // Instantiate initial SortedCellsList
+            var initialCells = new List<Cell>();
 
             for (var i = 0; i < cells.GetLength(0); i++)
             for (var j = 0; j < cells.GetLength(1); j++)
@@ -162,8 +245,8 @@ namespace WFCLevelGeneration
                 var specialCell = specialCells.FirstOrDefault(x => x.cellPos == new Vector3(i, j, k));
                 cells[i, j, k].PopulateCell(specialCell != null ? specialCell.cellModules : generalModules);
 
-                // Add cell to heap
-                orderedCells.Add(cells[i, j, k]);
+                // Add cell to initial SortedCellsList
+                initialCells.Add(cells[i, j, k]);
             }
 
             var stopwatch = new Stopwatch();
@@ -183,79 +266,12 @@ namespace WFCLevelGeneration
 
             applyInitConstr.Stop();
 
-            // Wave-function-collapse Algorithm
-            while (true)
+            // Start recursive Wave-Function-Collapse Algorithm
+            var success = RemoveModule(initialCells);
+
+            if (!success)
             {
-                Debugger.Log("Starting another iteration! Removing next module.", DebugOutputLevels.All,
-                    debugOutputLevel, gameObject);
-
-                // Remove finished cells from heap
-                while (orderedCells.Count > 0)
-                {
-                    var cell = orderedCells.GetFirst();
-
-                    if (cell.SolvedScore <= 0)
-                        Debug.LogError(
-                            $"Impossible Map! No fitting module could be found for {cell}. solved Score: {cell.SolvedScore}",
-                            gameObject);
-
-                    if (cell.SolvedScore == 1)
-                    {
-                        if (cell.isCellSet)
-                        {
-                            orderedCells.RemoveFirst();
-                        }
-                        else
-                        {
-                            if (!cell.SetModule(cell.possibleModules[0]))
-                                Debug.LogError($"Backtrack Error while setting module {cell}!");
-
-                            goto iteration_end;
-                        }
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                // Remove random module from cell
-                if (orderedCells.Count > 0)
-                {
-                    var cell = orderedCells.GetFirst();
-
-                    if (backtrackLastCell == cell && backtrackLastCellScore == cell.SolvedScore)
-                    {
-                        Debug.LogError($"Infinite Loop prevention on {cell.name} with {cell.SolvedScore}!");
-                        return;
-                    }
-
-                    backtrackLastCell = cell;
-                    backtrackLastCellScore = cell.SolvedScore;
-
-                    var c = 0;
-                    var mLength = cell.possibleModules.Count;
-                    var i = Random.Range(0, cell.possibleModules.Count);
-
-                    while (c < mLength)
-                    {
-                        i = ++i % mLength;
-
-                        if (cell.RemoveModule(cell.possibleModules[i])) break;
-
-                        ++c;
-
-                        if (c == mLength)
-                            Debug.LogWarning($"Couldn't backtrack far enough {cell.name} with {cell.SolvedScore}!");
-                    }
-                }
-                else
-                {
-                    // Finished
-                    break;
-                }
-
-                iteration_end: ;
+                Debug.LogWarning("WTF ich hab keine ahnung was mein leben is");
             }
 
             var finishLevelStpwtch = new Stopwatch();
@@ -289,7 +305,7 @@ namespace WFCLevelGeneration
         {
             for (var i = 0; i < cellHistories.Count; i++)
             {
-                if (cellHistories[i].action == CellHistory.CellActions.Reset) continue;
+                // TODO: Performance
                 cellHistories[i].Execute();
             }
         }
@@ -351,7 +367,7 @@ namespace WFCLevelGeneration
 
             return isValid;
         }
-        
+
         /// <summary>
         /// Starts Wave-function-collapse algorithm
         /// </summary>
@@ -406,12 +422,14 @@ namespace WFCLevelGeneration
         }
 
         public CellActions action;
+        public Module module;
         public Cell cell;
 
-        public CellHistory(CellActions action, Cell cell)
+        public CellHistory(CellActions action, Cell cell, Module module = null)
         {
             this.action = action;
             this.cell = cell;
+            this.module = module;
         }
 
         public void Execute()
@@ -420,8 +438,8 @@ namespace WFCLevelGeneration
             {
                 case CellActions.Set:
                     // Instantiate module game object
-                    var moduleGo = cell.possibleModules[0].moduleGO;
-                    var go = Object.Instantiate(moduleGo, cell.transform.position, moduleGo.transform.rotation);
+                    var go = Object.Instantiate(module.moduleGO, cell.transform.position,
+                        module.moduleGO.transform.rotation);
                     go.transform.parent = cell.transform;
                     cell.placedModule = go;
                     break;
