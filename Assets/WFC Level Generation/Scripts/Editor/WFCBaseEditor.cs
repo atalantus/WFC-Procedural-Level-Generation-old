@@ -3,14 +3,17 @@ using UnityEngine;
 
 namespace WFCLevelGeneration.Editor
 {
-    [CustomEditor(typeof(LevelGenerator), true)]
-    public class LevelGeneratorEditor : UnityEditor.Editor
+    [CustomEditor(typeof(WFCBase), true)]
+    public class WFCBaseEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
 
-            var levelGenerator = (LevelGenerator) target;
+            var levelGenerator = (WFCBase) target;
+
+            GUILayout.Label(new GUIContent($"Cells Histories ({levelGenerator.cellHistories.Count} entries)",
+                "The wfc algorithms cell history."));
 
             GUILayout.Space(20);
 

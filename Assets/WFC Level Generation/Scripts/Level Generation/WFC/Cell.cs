@@ -36,24 +36,16 @@ namespace WFCLevelGeneration
         public List<Module> possibleModules;
 
         /// <summary>
-        /// <see cref="LevelGenerator"/>
-        /// </summary>
-        private LevelGenerator _levelGenerator;
-
-        /// <summary>
         /// The adjacent cells (forward, up, right, back, down, left)
         /// Element can be null if the cell is on the grid`s edge
         /// </summary>
         public Cell[] neighbourCells = new Cell[6];
 
+        [HideInInspector] public WFCBase levelGenerator;
+
         #endregion
 
         #region Methods
-
-        private void Awake()
-        {
-            _levelGenerator = LevelGenerator.Instance;
-        }
 
         /// <summary>
         /// Adds a given set of modules to the possibility space
@@ -82,7 +74,7 @@ namespace WFCLevelGeneration
         public bool FilterCell(FaceFilter faceFilter, bool mustFit)
         {
             Debugger.Log($"FilterCell({faceFilter.ToString()}, {mustFit})",
-                LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
+                WFCBase.DebugOutputLevels.All, levelGenerator.debugOutputLevel, gameObject);
 
             // this cell is already set
             if (SolvedScore == 1) return true;
@@ -124,8 +116,10 @@ namespace WFCLevelGeneration
         /// </summary>
         public bool RemoveModule(Module module)
         {
+            if (possibleModules.Count == 1) return false;
+            
             Debugger.Log($"RemoveModule({module.moduleGO.name})",
-                LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
+                WFCBase.DebugOutputLevels.All, levelGenerator.debugOutputLevel, gameObject);
 
             // Remove module from possibility space
             possibleModules.Remove(module);
@@ -151,7 +145,7 @@ namespace WFCLevelGeneration
                     // The removed module was the last with this specific face id for this face direction
                     // populate changes to facing neighbour
                     Debugger.Log($"Last face({j}, {faceId.ToString()})",
-                        LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel, gameObject);
+                        WFCBase.DebugOutputLevels.All, levelGenerator.debugOutputLevel, gameObject);
 
                     var faceFilter = new FaceFilter((FaceFilter.FaceDirections) j, faceId);
 
@@ -175,7 +169,7 @@ namespace WFCLevelGeneration
         {
             var module = possibleModules[0];
 
-            Debugger.Log("Set cell!", LevelGenerator.DebugOutputLevels.All, _levelGenerator.debugOutputLevel,
+            Debugger.Log("Set cell!", WFCBase.DebugOutputLevels.All, levelGenerator.debugOutputLevel,
                 gameObject);
 
             // set cell state
@@ -183,7 +177,7 @@ namespace WFCLevelGeneration
             isCellSet = true;
 
             // add "set" entry to cell histories
-            _levelGenerator.cellHistories.Add(new CellHistory(CellHistory.CellActions.Set, this, module));
+            levelGenerator.cellHistories?.Add(new CellHistory(CellHistory.CellActions.Set, this, module));
 
             // Check if it actually fits to already set neighbour cells
             for (var i = 0; i < neighbourCells.Length; i++)
@@ -221,6 +215,45 @@ namespace WFCLevelGeneration
             {
                 this.possibleModulesState = new List<Module>(cell.possibleModules);
                 this.isCellSetState = cell.isCellSet;
+            }
+        }
+
+        [Serializable]
+        public class CellHistory
+        {
+            public enum CellActions
+            {
+                Set,
+                Reset
+            }
+
+            public CellActions action;
+            public Module module;
+            public Cell cell;
+
+            public CellHistory(CellActions action, Cell cell, Module module = null)
+            {
+                this.action = action;
+                this.cell = cell;
+                this.module = module;
+            }
+
+            public void Execute()
+            {
+                switch (action)
+                {
+                    case CellActions.Set:
+                        // Instantiate module game object
+                        var go = Instantiate(module.moduleGO, cell.transform.position,
+                            module.moduleGO.transform.rotation);
+                        go.transform.parent = cell.transform;
+                        cell.placedModule = go;
+                        break;
+                    case CellActions.Reset:
+                        if (Application.isPlaying) Destroy(cell.placedModule);
+                        else DestroyImmediate(cell.placedModule);
+                        break;
+                }
             }
         }
     }

@@ -1,18 +1,13 @@
 ﻿using UnityEngine;
+using WFCLevelGeneration.Constraints;
 
 namespace WFCLevelGeneration.Examples
 {
-    public class MinigolfLevelGenerator : LevelGenerator
+    public class MinigolfLevelGenerator : WFCBacktracking
     {
-        protected override void ApplyInitialConstraints()
+        private void Awake()
         {
-            StandardConstraints.WorldBordersConstraint(ref cells,
-                null,
-                null,
-                967653782,
-                967653782,
-                967653782,
-                967653782);
+            SetInitialConstraints(new BorderConstraint(null, null, 967653782, 967653782, 967653782, 967653782));
         }
 
         private void Start()

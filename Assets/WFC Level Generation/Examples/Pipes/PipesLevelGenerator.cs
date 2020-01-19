@@ -1,12 +1,14 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
+using WFCLevelGeneration.Constraints;
 
 namespace WFCLevelGeneration.Examples
 {
-    public class PipesLevelGenerator : LevelGenerator
+    public class PipesLevelGenerator : WFCBacktracking
     {
-        protected override void ApplyInitialConstraints()
+        private void Awake()
         {
-            StandardConstraints.WorldBordersConstraint(ref cells, 1, 0, 0, 0, 0, 0);
+            SetInitialConstraints(new BorderConstraint(1, 0, 0, 0, 0, 0));
         }
 
         private void Start()

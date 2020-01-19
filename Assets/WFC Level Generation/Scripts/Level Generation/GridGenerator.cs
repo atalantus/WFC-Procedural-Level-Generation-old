@@ -25,7 +25,7 @@ namespace WFCLevelGeneration
         /// <summary>
         /// Generates the three-dimensional grid.
         /// </summary>
-        protected void GenerateGrid()
+        public void GenerateGrid(WFCBase levelGenerator)
         {
             var cellScale = cellPrefab.transform.localScale;
 
@@ -55,6 +55,7 @@ namespace WFCLevelGeneration
                     var cellObj = Instantiate(cellPrefab, curPos, Quaternion.identity, gameObject.transform);
                     cellObj.name = $"({x}, {y}, {z})";
                     var cell = cellObj.GetComponent<Cell>();
+                    cell.levelGenerator = levelGenerator;
                     cells[x, y, z] = cell;
                 }
 
@@ -109,7 +110,7 @@ namespace WFCLevelGeneration
         /// <summary>
         /// Destroys the current grid.
         /// </summary>
-        protected void RemoveGrid()
+        public void RemoveGrid()
         {
             var children = transform.Cast<Transform>().ToList();
 
