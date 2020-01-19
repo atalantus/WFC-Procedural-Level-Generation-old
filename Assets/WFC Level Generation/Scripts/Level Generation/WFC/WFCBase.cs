@@ -75,8 +75,8 @@ namespace WFCLevelGeneration
         [HideInInspector] public List<Cell.CellHistory> cellHistories;
 
         protected System.Random rng;
-        private IWFCConstraint[] _initialConstraints;
-        private IWFCConstraint[] _finalConstraints;
+        private IGenerationConstraint[] _initialConstraints;
+        private IGenerationConstraint[] _finalConstraints;
 
         #endregion
 
@@ -290,7 +290,7 @@ namespace WFCLevelGeneration
         /// Set the initial constraints.
         /// </summary>
         /// <param name="constraints">The constraints</param>
-        public void SetInitialConstraints(params IWFCConstraint[] constraints)
+        public void SetInitialConstraints(params IGenerationConstraint[] constraints)
         {
             _initialConstraints = constraints;
         }
@@ -299,7 +299,7 @@ namespace WFCLevelGeneration
         /// Set the final constraints.
         /// </summary>
         /// <param name="constraints">The constraints</param>
-        public void SetFinalConstraints(params IWFCConstraint[] constraints)
+        public void SetFinalConstraints(params IGenerationConstraint[] constraints)
         {
             _finalConstraints = constraints;
         }

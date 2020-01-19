@@ -5,7 +5,7 @@ namespace WFCLevelGeneration.Constraints
     /// <summary>
     /// Adjacency constraints to cells lying on the world's borders.
     /// </summary>
-    public class BorderConstraint : IWFCConstraint
+    public class BorderConstraint : IGenerationConstraint
     {
         private readonly int?[] _borders;
 

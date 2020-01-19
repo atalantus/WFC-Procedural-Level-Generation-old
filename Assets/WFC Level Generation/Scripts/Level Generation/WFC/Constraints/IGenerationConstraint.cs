@@ -1,6 +1,6 @@
 ﻿namespace WFCLevelGeneration.Constraints
 {
-    public interface IWFCConstraint
+    public interface IGenerationConstraint
     {
         void Execute(Cell [,,] cells);
     }
