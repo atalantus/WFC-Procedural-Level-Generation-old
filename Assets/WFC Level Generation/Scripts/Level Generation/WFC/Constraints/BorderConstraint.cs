@@ -25,7 +25,7 @@ namespace WFCLevelGeneration.Constraints
             _borders = new[] {floorCnstr, ceilingCnstr, backCnstr, forwardCnstr, rightCnstr, leftConstr};
         }
 
-        public void Execute(Cell[,,] cells)
+        public void Execute(ref Cell[,,] cells)
         {
             if (_borders == null || _borders.Length != 6) Debug.LogError("Border Constraints not set up correctly!");
 

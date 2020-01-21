@@ -232,7 +232,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f250ed0228677447aef5c19aef1538a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dimensions: {x: 3, y: 3, z: 3}
+  dimensions: {x: 2, y: 2, z: 1}
   cellPrefab: {fileID: 8956004518522791037, guid: e6835540e9a752842b04112839db16d6,
     type: 3}
   generalModules:

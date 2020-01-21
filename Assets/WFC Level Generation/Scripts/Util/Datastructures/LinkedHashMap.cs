@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace WFCLevelGeneration.Util
+namespace WFCLevelGeneration.Util.Datastructures
 {
     public class LinkedHashMap<K, V>
     {

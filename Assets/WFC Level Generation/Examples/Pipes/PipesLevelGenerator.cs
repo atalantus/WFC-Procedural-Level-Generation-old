@@ -1,10 +1,9 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using WFCLevelGeneration.Constraints;
 
 namespace WFCLevelGeneration.Examples
 {
-    public class PipesLevelGenerator : WFCBacktracking
+    public class PipesLevelGenerator : WFC
     {
         private void Awake()
         {

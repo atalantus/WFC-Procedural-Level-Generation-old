@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using WFCLevelGeneration.Util.Datastructures;
 
 namespace WFCLevelGeneration.Util
 {

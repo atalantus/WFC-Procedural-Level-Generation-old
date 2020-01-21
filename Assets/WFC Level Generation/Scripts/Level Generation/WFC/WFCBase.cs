@@ -103,7 +103,7 @@ namespace WFCLevelGeneration
             if (_initialConstraints != null)
                 foreach (var constraint in _initialConstraints)
                 {
-                    constraint.Execute(cells);
+                    constraint.Execute(ref cells);
                 }
 
             stopwatch.Stop();
@@ -124,7 +124,7 @@ namespace WFCLevelGeneration
             if (_finalConstraints != null)
                 foreach (var constraint in _finalConstraints)
                 {
-                    constraint.Execute(cells);
+                    constraint.Execute(ref cells);
                 }
 
             stopwatch.Stop();

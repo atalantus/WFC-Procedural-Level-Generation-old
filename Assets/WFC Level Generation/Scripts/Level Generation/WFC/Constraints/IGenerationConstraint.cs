@@ -2,6 +2,6 @@
 {
     public interface IGenerationConstraint
     {
-        void Execute(Cell [,,] cells);
+        void Execute(ref Cell [,,] cells);
     }
 }
