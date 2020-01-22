@@ -62,7 +62,7 @@ namespace WFCLevelGeneration
         public void ResetCellState(CellState cellState)
         {
             // Reset cell on error state and backtrack!
-            possibleModules = cellState.possibleModulesState;
+            possibleModules = new List<Module>(cellState.possibleModulesState);
             isCellSet = cellState.isCellSetState;
         }
 
@@ -71,6 +71,7 @@ namespace WFCLevelGeneration
         /// </summary>
         /// <param name="faceFilter">Face filter</param>
         /// <param name="mustFit">When set to true filter all modules that do not fit the filter. When set to false it's the opposite.</param>
+        /// <returns>True if filtering the cell was successful</returns>
         public bool FilterCell(FaceFilter faceFilter, bool mustFit)
         {
             Debugger.Log($"FilterCell({faceFilter.ToString()}, {mustFit})",
@@ -114,10 +115,11 @@ namespace WFCLevelGeneration
         /// Checks if the removing module had the last face type of any kind for this cell and if so populates the changes to the affected neighbour cell.
         /// Than removes module from <see cref="possibleModules"/>
         /// </summary>
+        /// <returns>True if removing the module was successful</returns>
         public bool RemoveModule(Module module)
         {
             if (possibleModules.Count == 1) return false;
-            
+
             Debugger.Log($"RemoveModule({module.moduleGO.name})",
                 WFCBase.DebugOutputLevels.All, levelGenerator.debugOutputLevel, gameObject);
 
@@ -165,10 +167,19 @@ namespace WFCLevelGeneration
         /// <summary>
         /// Assigns this cell the first module and automatically removes all other possibilities.
         /// </summary>
+        /// <returns>True if setting the module was successful</returns>
         public bool SetLastModule()
         {
-            var module = possibleModules[0];
+            return SetModule(possibleModules[0]);
+        }
 
+        /// <summary>
+        /// Assigns this cell a specific module and automatically removes all other possibilities.
+        /// </summary>
+        /// <param name="module">The assigned module</param>
+        /// <returns>True if setting the module was successful</returns>
+        public bool SetModule(Module module)
+        {
             Debugger.Log("Set cell!", WFCBase.DebugOutputLevels.All, levelGenerator.debugOutputLevel,
                 gameObject);
 
@@ -213,8 +224,8 @@ namespace WFCLevelGeneration
 
             public CellState(Cell cell)
             {
-                this.possibleModulesState = new List<Module>(cell.possibleModules);
-                this.isCellSetState = cell.isCellSet;
+                possibleModulesState = new List<Module>(cell.possibleModules);
+                isCellSetState = cell.isCellSet;
             }
         }
 
@@ -250,6 +261,8 @@ namespace WFCLevelGeneration
                         cell.placedModule = go;
                         break;
                     case CellActions.Reset:
+                        if (cell.placedModule == null) break;
+
                         if (Application.isPlaying) Destroy(cell.placedModule);
                         else DestroyImmediate(cell.placedModule);
                         break;

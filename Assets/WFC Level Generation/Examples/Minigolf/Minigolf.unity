@@ -232,6 +232,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d3781e6460226f41ba664221d92aea0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dimensions: {x: 10, y: 1, z: 10}
+  cellPrefab: {fileID: 2559029275105754374, guid: 645c8b666adf28b439b714c59bb6e240,
+    type: 3}
   generalModules:
   - {fileID: 11400000, guid: 61e3363a639150c4a80a5000723a3bd6, type: 2}
   - {fileID: 11400000, guid: 475381e218cab97459daba2bc52ecd0b, type: 2}
@@ -265,15 +268,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 63d6c0e59320fb84da54a18ad19ff713, type: 2}
   - {fileID: 11400000, guid: 0ebfaa2de0a003b4185b9c29faef7f7c, type: 2}
   - {fileID: 11400000, guid: cbe49a7ee40e77a499983d6f83babf9d, type: 2}
-  specialCells: []
-  runInExtraThread: 1
-  validateCellAdjacency: 1
+  manualCells: []
   modulePlacingStepTime: 0.1
   debugOutputLevel: 1
   seed: -1
-  dimensions: {x: 10, y: 1, z: 10}
-  cellPrefab: {fileID: 2559029275105754374, guid: 645c8b666adf28b439b714c59bb6e240,
-    type: 3}
+  cellHistories: []
+  retryCount: 1
 --- !u!4 &171234834
 Transform:
   m_ObjectHideFlags: 0

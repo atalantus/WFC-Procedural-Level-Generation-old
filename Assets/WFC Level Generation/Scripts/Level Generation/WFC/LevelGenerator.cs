@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace WFCLevelGeneration
 {
-    public class WFC : WFCBase
+    public class LevelGenerator : WFCBase
     {
         public int retryCount = 5;
 
@@ -16,14 +17,8 @@ namespace WFCLevelGeneration
 
                 if (cell.SolvedScore == 1)
                 {
-                    if (cell.isCellSet)
-                    {
-                        orderedCells.RemoveAt(0);
-                    }
-                    else
-                    {
-                        if (!cell.SetLastModule()) return false;
-                    }
+                    if (cell.isCellSet) orderedCells.RemoveAt(0);
+                    else if (!cell.SetLastModule()) return false;
                 }
                 else
                 {
@@ -37,16 +32,28 @@ namespace WFCLevelGeneration
         protected override bool CollapseWaveFunction()
         {
             var orderedCells = new List<Cell>();
+            var savedCellStates = new List<Cell.CellState>();
 
             foreach (var cell in cells)
             {
                 orderedCells.Add(cell);
+                savedCellStates.Add(new Cell.CellState(cell));
             }
 
             for (var i = 0; i < retryCount; i++)
             {
-                if (ResolveLevel(orderedCells)) return true;
-                // TODO: Reset orderedCells
+                // Reset cell histories
+                cellHistories = new List<Cell.CellHistory>();
+
+                if (ResolveLevel(new List<Cell>(orderedCells))) return true;
+
+                // Reset orderedCells
+                for (var j = 0; j < orderedCells.Count; j++)
+                {
+                    orderedCells[j].ResetCellState(savedCellStates[j]);
+                }
+
+                if (i == retryCount - 1) Debug.LogError($"Couldn't find solution in {i + 1} tries.");
             }
 
             return false;

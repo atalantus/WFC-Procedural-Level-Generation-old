@@ -3,7 +3,7 @@ using WFCLevelGeneration.Util;
 
 namespace WFCLevelGeneration
 {
-    public class WFCBacktracking : WFCBase
+    public class LevelGeneratorBacktracking : WFCBase
     {
         private bool RemoveModule(List<Cell> previousCells)
         {

@@ -3,7 +3,7 @@ using WFCLevelGeneration.Constraints;
 
 namespace WFCLevelGeneration.Examples
 {
-    public class PipesLevelGenerator : WFC
+    public class PipesLevelGenerator : LevelGenerator
     {
         private void Awake()
         {

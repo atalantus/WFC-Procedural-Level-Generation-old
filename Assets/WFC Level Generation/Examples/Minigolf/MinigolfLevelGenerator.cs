@@ -3,7 +3,7 @@ using WFCLevelGeneration.Constraints;
 
 namespace WFCLevelGeneration.Examples
 {
-    public class MinigolfLevelGenerator : WFCBacktracking
+    public class MinigolfLevelGenerator : LevelGenerator
     {
         private void Awake()
         {
