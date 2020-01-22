@@ -1,16 +1,19 @@
-﻿namespace WFCLevelGeneration.Examples
+﻿using UnityEngine;
+using WFCLevelGeneration.Constraints;
+
+namespace WFCLevelGeneration.Examples
 {
     public class MinigolfLevelGenerator : LevelGenerator
     {
-        protected override void ApplyInitialConstraints()
+        private void Awake()
         {
-            StandardConstraints.WorldBordersConstraint(ref cells,
-                null,
-                null,
-                967653782,
-                967653782,
-                967653782,
-                967653782);
+            SetInitialConstraints(new BorderConstraint(null, null, 967653782, 967653782, 967653782, 967653782));
+        }
+
+        private void Start()
+        {
+            if (Application.isPlaying)
+                GenerateLevel();
         }
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace WFCLevelGeneration.Util
+namespace WFCLevelGeneration.Util.Datastructures
 {
     [Serializable]
     public class ConnectionsDictionary : SerializableDictionary<int, int>

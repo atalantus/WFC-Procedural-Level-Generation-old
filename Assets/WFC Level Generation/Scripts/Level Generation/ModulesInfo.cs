@@ -3,6 +3,7 @@ using WFCLevelGeneration.Util;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+using WFCLevelGeneration.Util.Datastructures;
 
 namespace WFCLevelGeneration
 {

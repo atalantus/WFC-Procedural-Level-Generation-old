@@ -1,10 +1,19 @@
-﻿namespace WFCLevelGeneration.Examples
+﻿using UnityEngine;
+using WFCLevelGeneration.Constraints;
+
+namespace WFCLevelGeneration.Examples
 {
     public class PipesLevelGenerator : LevelGenerator
     {
-        protected override void ApplyInitialConstraints()
+        private void Awake()
         {
-            StandardConstraints.WorldBordersConstraint(ref cells, 1, 0, 0, 0, 0, 0);
+            SetInitialConstraints(new BorderConstraint(1, 0, 0, 0, 0, 0));
+        }
+
+        private void Start()
+        {
+            if (Application.isPlaying)
+                GenerateLevel();
         }
     }
 }
