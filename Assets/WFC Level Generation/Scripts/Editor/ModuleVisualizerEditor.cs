@@ -206,6 +206,8 @@ namespace WFCLevelGeneration.Editor
 
             if (GUILayout.Button("Regenerate faces"))
             {
+                // TODO: Regenerate faces
+                /*
                 // remove faces from module info
                 foreach (var face in moduleVisualizer.faces)
                 {
@@ -226,6 +228,7 @@ namespace WFCLevelGeneration.Editor
                     moduleVisualizer.modulesInfo.AddFace(face.faceHash);
                     moduleVisualizer.UpdateModuleAssets(i, face.faceHash);
                 }
+                */
             }
         }
 

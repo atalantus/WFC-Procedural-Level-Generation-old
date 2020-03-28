@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using WFCLevelGeneration.Util.Datastructures;
 
@@ -15,20 +16,14 @@ namespace WFCLevelGeneration.Util
         /// Creates the 6 different face meshes of a given mesh in the mesh's local transform space.
         /// Note that the face meshes only contain vertices which actually touch the cell's bounds.
         /// </summary>
-        /// <param name="mesh">The mesh</param>
-        /// <param name="meshTransform">The mesh's Transform component</param>
-        /// <param name="cellScale">The cell's scale</param>
         /// <returns>The different face meshes (forward, up, right, back, down, left)</returns>
-        public static ModuleVisualizer.ModuleFace[] GetFaceMeshes(Mesh mesh, Transform meshTransform, Vector3 cellScale)
+        public static ModuleVisualizer.ModuleFace[] GetFaceMeshes(Vector3[] mVertices, int[] mTriangles,
+            Vector3[] mNormals, Vector3 mScale, Vector3 mPos, Vector3 cellScale)
         {
             var faces = new ModuleVisualizer.ModuleFace[6];
 
             const float lossOfFractionThreshold = 0.0001f;
 
-            var mVertices = mesh.vertices;
-            var mTriangles = mesh.triangles;
-            var mNormals = mesh.normals;
-            var mScale = meshTransform.localScale;
             var cBounds = new Bounds(new Vector3(0, cellScale.y / 2, 0),
                 cellScale);
 
@@ -52,7 +47,7 @@ namespace WFCLevelGeneration.Util
                         vertices[j].y * mScale.y,
                         vertices[j].z * mScale.z
                     );
-                    vertices[j] += meshTransform.localPosition;
+                    vertices[j] += mPos;
                 }
 
                 var transformOriginToTriCenter = (vertices[0] + vertices[1] + vertices[2]) / 3;
@@ -70,9 +65,9 @@ namespace WFCLevelGeneration.Util
             // Apply face meshes
             for (var i = 0; i < faces.Length; i++)
             {
-                faceMeshes[i].mesh.GenerateFaceMesh(faceMeshes[i].vertices, faceMeshes[i].triangles);
+                var (vertices, triangles) = GenerateFaceMesh(faceMeshes[i].vertices, faceMeshes[i].triangles);
 
-                faces[i] = new ModuleVisualizer.ModuleFace(faceMeshes[i].mesh,
+                faces[i] = new ModuleVisualizer.ModuleFace(vertices, triangles,
                     faceMeshes[i].mesh.GenerateFaceMeshHash(FaceNormals[i]));
             }
 
@@ -83,16 +78,10 @@ namespace WFCLevelGeneration.Util
         /// Generates 6 hashes (one for each face) for a given mesh.
         /// These face hashes do also include vertices that lie inside the cell's bounds.
         /// </summary>
-        /// <param name="mesh">The mesh</param>
-        /// <param name="meshTransform">The mesh's Transform component</param>
         /// <returns></returns>
-        public static int[] GetMeshpartHashes(Mesh mesh, Transform meshTransform)
+        public static int[] GetMeshpartHashes(Vector3[] mVertices, int[] mTriangles,
+            Vector3[] mNormals, Vector3 mScale, Vector3 mPos)
         {
-            var mVertices = mesh.vertices;
-            var mTriangles = mesh.triangles;
-            var mNormals = mesh.normals;
-            var mScale = meshTransform.localScale;
-
             var meshpartHashes = new int[6];
 
             var faceMeshes = new FaceMesh[6];
@@ -115,7 +104,7 @@ namespace WFCLevelGeneration.Util
                         vertices[j].y * mScale.y,
                         vertices[j].z * mScale.z
                     );
-                    vertices[j] += meshTransform.localPosition;
+                    vertices[j] += mPos;
                 }
 
                 SortTriangle(triangleNormal, vertices, faceMeshes);
@@ -124,7 +113,11 @@ namespace WFCLevelGeneration.Util
             // Apply face meshes
             for (var i = 0; i < meshpartHashes.Length; i++)
             {
-                faceMeshes[i].mesh.GenerateFaceMesh(faceMeshes[i].vertices, faceMeshes[i].triangles);
+                var (vertices, triangles) = GenerateFaceMesh(faceMeshes[i].vertices, faceMeshes[i].triangles);
+                faceMeshes[i].mesh.vertices = vertices;
+                faceMeshes[i].mesh.triangles = triangles;
+                faceMeshes[i].mesh.RecalculateNormals();
+                faceMeshes[i].mesh.RecalculateBounds();
 
                 // calculate hash
                 meshpartHashes[i] = faceMeshes[i].mesh.GenerateFaceMeshHash(FaceNormals[i]);
@@ -173,7 +166,8 @@ namespace WFCLevelGeneration.Util
             }
         }
 
-        private static void GenerateFaceMesh(this Mesh mesh, LinkedHashMap<Vector3, int> vertices, List<int> triangles)
+        private static Tuple<Vector3[], int[]> GenerateFaceMesh(LinkedHashMap<Vector3, int> vertices,
+            List<int> triangles)
         {
             var verticesCount = vertices.Count;
             var verticesArr = new Vector3[verticesCount];
@@ -184,10 +178,7 @@ namespace WFCLevelGeneration.Util
                 verticesArr[j] = v;
             }
 
-            mesh.vertices = verticesArr;
-            mesh.triangles = triangles.ToArray();
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
+            return new Tuple<Vector3[], int[]>(verticesArr, triangles.ToArray());
         }
 
         private static int GenerateFaceMeshHash(this Mesh mesh, Vector3 meshAxis)

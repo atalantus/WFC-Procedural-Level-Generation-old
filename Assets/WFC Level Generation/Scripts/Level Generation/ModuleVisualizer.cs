@@ -220,11 +220,12 @@ namespace WFCLevelGeneration
             [SerializeField] public int[] triangles;
             [SerializeField] public int faceHash;
 
-            public ModuleFace(Mesh mesh, int faceHash)
+            public ModuleFace(Vector3[] vertices, int[] triangles, int faceHash)
             {
-                _mesh = mesh;
-                vertices = mesh.vertices;
-                triangles = mesh.triangles;
+                _mesh = null;
+
+                this.vertices = vertices;
+                this.triangles = triangles;
 
                 this.faceHash = faceHash;
             }
