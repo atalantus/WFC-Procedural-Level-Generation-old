@@ -20,6 +20,7 @@ namespace WFCLevelGeneration.Util
         public static ModuleVisualizer.ModuleFace[] GetFaceMeshes(Vector3[] mVertices, int[] mTriangles,
             Vector3[] mNormals, Vector3 mScale, Vector3 mPos, Vector3 cellScale)
         {
+            Debug.Log("GetFaceMeshes");
             var faces = new ModuleVisualizer.ModuleFace[6];
 
             const float lossOfFractionThreshold = 0.0001f;
@@ -65,11 +66,13 @@ namespace WFCLevelGeneration.Util
             // Apply face meshes
             for (var i = 0; i < faces.Length; i++)
             {
-                var (vertices, triangles) = GenerateFaceMesh(faceMeshes[i].vertices, faceMeshes[i].triangles);
+                var mesh = GenerateFaceMesh(faceMeshes[i].vertices, faceMeshes[i].triangles);
 
-                faces[i] = new ModuleVisualizer.ModuleFace(vertices, triangles,
-                    faceMeshes[i].mesh.GenerateFaceMeshHash(FaceNormals[i]));
+                faces[i] = new ModuleVisualizer.ModuleFace(mesh.Item1, mesh.Item2,
+                    mesh.GenerateFaceMeshHash(FaceNormals[i]));
             }
+
+            Debug.Log("GetFaceMeshes - Finish");
 
             return faces;
         }
@@ -82,6 +85,8 @@ namespace WFCLevelGeneration.Util
         public static int[] GetMeshpartHashes(Vector3[] mVertices, int[] mTriangles,
             Vector3[] mNormals, Vector3 mScale, Vector3 mPos)
         {
+            Debug.Log("GetMeshpartHashes");
+
             var meshpartHashes = new int[6];
 
             var faceMeshes = new FaceMesh[6];
@@ -113,15 +118,12 @@ namespace WFCLevelGeneration.Util
             // Apply face meshes
             for (var i = 0; i < meshpartHashes.Length; i++)
             {
-                var (vertices, triangles) = GenerateFaceMesh(faceMeshes[i].vertices, faceMeshes[i].triangles);
-                faceMeshes[i].mesh.vertices = vertices;
-                faceMeshes[i].mesh.triangles = triangles;
-                faceMeshes[i].mesh.RecalculateNormals();
-                faceMeshes[i].mesh.RecalculateBounds();
-
                 // calculate hash
-                meshpartHashes[i] = faceMeshes[i].mesh.GenerateFaceMeshHash(FaceNormals[i]);
+                meshpartHashes[i] = GenerateFaceMesh(faceMeshes[i].vertices, faceMeshes[i].triangles)
+                    .GenerateFaceMeshHash(FaceNormals[i]);
             }
+
+            Debug.Log("GetMeshpartHashes - Finish");
 
             return meshpartHashes;
         }
@@ -181,14 +183,13 @@ namespace WFCLevelGeneration.Util
             return new Tuple<Vector3[], int[]>(verticesArr, triangles.ToArray());
         }
 
-        private static int GenerateFaceMeshHash(this Mesh mesh, Vector3 meshAxis)
+        private static int GenerateFaceMeshHash(this Tuple<Vector3[], int[]> mesh, Vector3 meshAxis)
         {
             var hash = 0;
-            var center = mesh.bounds.center;
 
-            foreach (var v in mesh.vertices)
+            foreach (var v in mesh.Item1)
             {
-                var dir = v - center;
+                var dir = v;
                 dir.Vector3AlignForwardAxis(meshAxis);
                 hash ^= dir.GenerateVector3Hash();
             }
@@ -211,13 +212,11 @@ namespace WFCLevelGeneration.Util
 
         private class FaceMesh
         {
-            public readonly Mesh mesh;
             public readonly LinkedHashMap<Vector3, int> vertices;
             public readonly List<int> triangles;
 
             public FaceMesh()
             {
-                mesh = new Mesh();
                 vertices = new LinkedHashMap<Vector3, int>();
                 triangles = new List<int>();
             }

@@ -20,12 +20,13 @@ namespace WFCLevelGeneration.Editor
         public Cell cell;
         public GameObject[] modelSources;
 
-        private string ModulesPath => folderPath + "/Modules";
+        public string ModulesPath => folderPath + "/Modules";
 
-        private ModulesManager _modulesManager;
-        [SerializeField] private ModulesInfo modulesInfo;
-        private bool _generating;
-        private int _currentSourceIndex;
+        public ModulesManager _modulesManager;
+        [SerializeField] public ModulesInfo modulesInfo;
+        public bool _generating;
+        public int _currentSourceIndex;
+        public Action _processNextModule;
 
         /**
          * Window properties
@@ -33,118 +34,7 @@ namespace WFCLevelGeneration.Editor
         private string _progressBarInfo = "";
 
         private Vector2 _scrollPosEditor;
-        private int _modulesSceneCount = 0;
-
-        /// <summary>
-        /// Process next Module Data.
-        /// </summary>
-        /// <param name="data">Module Data</param>
-        private void ProcessNextModule(ModuleData data)
-        {
-            try
-            {
-                var rotation = Vector3.zero;
-
-                for (var j = 0; j < data.faces.Length; j++) modulesInfo.AddFace(data.faces[j].faceHash);
-
-                // Create master prefab
-                var masterPrefab = PrefabUtility.InstantiatePrefab(modelSources[_currentSourceIndex]) as GameObject;
-                masterPrefab.transform.parent = _modulesManager.transform;
-
-                // Add visualizer component to master prefab
-                var masterVisualizer = masterPrefab.AddComponent<ModuleVisualizer>();
-                masterVisualizer.faces = data.faces;
-                masterVisualizer.cell = cell;
-                masterVisualizer.modulesInfo = modulesInfo;
-                masterVisualizer.modulesManager = _modulesManager;
-                masterVisualizer.RegisterEvents();
-
-                var localScale = cell.transform.localScale;
-                masterPrefab.transform.position = GetNextLayoutPos(
-                    new Vector2(localScale.x, localScale.z),
-                    ++_modulesSceneCount);
-
-                EditorUtility.SetDirty(masterPrefab);
-
-                for (var i = 0; i < 4; i++)
-                {
-                    // Check if rotation is necessary
-                    if (i != 0 && data.meshpartHashes != null)
-                    {
-                        if (i == 1 && data.meshpartHashes[0] == data.meshpartHashes[2] &&
-                            data.meshpartHashes[3] == data.meshpartHashes[5])
-                        {
-                            // 90° rotated version would not differ to original -> skip
-                            rotation = new Vector3(0, rotation.y + 90, 0);
-                            continue;
-                        }
-
-                        if (i == 2 && data.meshpartHashes[0] == data.meshpartHashes[3] &&
-                            data.meshpartHashes[2] == data.meshpartHashes[5])
-                        {
-                            // 180° rotated version would not differ to original -> skip
-                            rotation = new Vector3(0, rotation.y + 90, 0);
-                            continue;
-                        }
-
-                        if (i == 3 && (masterVisualizer.moduleAssets[1] == null ||
-                                       masterVisualizer.moduleAssets[2] == null))
-                            // 270° rotated version would not differ 90° variant -> skip
-                            continue;
-                    }
-
-                    var moduleName = rotation == Vector3.zero
-                        ? modelSources[_currentSourceIndex].name
-                        : $"{modelSources[_currentSourceIndex].name} ({rotation.y})";
-                    var variantPath = rotation == Vector3.zero ? "" : "Variants/";
-
-                    var moduleAsset = CreateInstance<Module>();
-
-                    // Create asset
-                    AssetDatabase.CreateAsset(moduleAsset,
-                        $"{ModulesPath}/Assets/{variantPath}{moduleName}.asset");
-
-                    // Create prefab variant
-                    var prefabVariant = PrefabUtility.SaveAsPrefabAsset(masterPrefab,
-                        $"{ModulesPath}/Prefabs/{variantPath}{moduleName}.prefab");
-                    prefabVariant.GetComponentInChildren<MeshFilter>().transform.rotation = Quaternion.Euler(rotation);
-
-                    // Assign asset values
-                    moduleAsset.moduleGO = prefabVariant;
-                    for (var j = 0; j < moduleAsset.faceConnections.Length; j++)
-                    {
-                        if (data.faces == null) return;
-
-                        var n = j;
-
-                        if (j % 3 == 1 || i == 0)
-                            // TODO: Recalculate rotated top/bottom face hash code
-                            n = j;
-                        else if (j % 3 == 0)
-                            n = (j + 2 * Mathf.CeilToInt(i / 2f) + 1 * (i / 2)) % 6;
-                        else
-                            n = (j + 1 * Mathf.CeilToInt(i / 2f) + 2 * (i / 2)) % 6;
-
-                        moduleAsset.faceConnections[n] = data.faces[j].faceHash;
-                    }
-
-                    masterVisualizer.moduleAssets[i] = moduleAsset;
-
-                    // Mark asset as dirty
-                    EditorUtility.SetDirty(moduleAsset);
-
-                    // set next rotation
-                    rotation = new Vector3(0, rotation.y + 90, 0);
-                }
-
-                EnqueueNextModuleGeneration();
-            }
-            catch (Exception e)
-            {
-                FinishModuleGeneration();
-                Debug.LogError(e);
-            }
-        }
+        public int _modulesSceneCount = 0;
 
         /// <summary>
         /// Generate Empty Module
@@ -244,7 +134,6 @@ namespace WFCLevelGeneration.Editor
         {
             _progressBarInfo = "Finishing Module Generation...";
 
-            ModuleGeneration.OnNextModuleData -= ProcessNextModule;
             _generating = false;
 
             // Write changes to disc
@@ -286,12 +175,17 @@ namespace WFCLevelGeneration.Editor
                     continue;
                 }
 
+                _progressBarInfo =
+                    $"Generating from {modelSources[_currentSourceIndex].name} ({_currentSourceIndex + 1}/{modelSources.Length})";
+
                 var mesh = meshFilter.sharedMesh;
                 var meshTransform = meshFilter.transform;
 
+                Debug.Log("EnqueueNextModuleGeneration");
+
                 // next module
                 ThreadPool.QueueUserWorkItem(ModuleGeneration.GenerateNextModule,
-                    new SourceData(mesh.vertices, mesh.triangles, mesh.normals,
+                    new SourceData(this, mesh.vertices, mesh.triangles, mesh.normals,
                         meshTransform.localScale, meshTransform.localPosition,
                         cell.transform.localScale));
                 return;
@@ -302,7 +196,7 @@ namespace WFCLevelGeneration.Editor
         /// Gets the 3d world position for the next master prefab
         /// </summary>
         /// <returns>Position for next master prefab</returns>
-        private Vector3 GetNextLayoutPos(Vector2 stepSize, int n)
+        public Vector3 GetNextLayoutPos(Vector2 stepSize, int n)
         {
             var pos = new Vector3();
 
@@ -331,6 +225,13 @@ namespace WFCLevelGeneration.Editor
                     (float) _currentSourceIndex / modelSources.Length))
                 {
                     FinishModuleGeneration();
+                }
+
+                if (_processNextModule != null)
+                {
+                    _processNextModule();
+                    _processNextModule = null;
+                    EnqueueNextModuleGeneration();
                 }
             }
         }
@@ -392,36 +293,22 @@ namespace WFCLevelGeneration.Editor
 
                 _generating = true;
 
-                try
+                ModuleGenerationInitialize();
+                ModuleGenerationSetup();
+
+                // Create empty module
+                if (generateEmpty)
                 {
-                    ModuleGenerationInitialize();
-                    ModuleGenerationSetup();
-
-                    // Create empty module
-                    if (generateEmpty)
-                    {
-                        GenerateEmptyModule();
-                    }
-
-                    // Refresh Asset Database
-                    AssetDatabase.Refresh();
-
-                    // Start Module Generation
-                    _currentSourceIndex = -1;
-                    _progressBarInfo =
-                        $"Generating from {modelSources[_currentSourceIndex].name} ({_currentSourceIndex + 1}/{modelSources.Length})";
-
-                    ModuleGeneration.OnNextModuleData += ProcessNextModule;
-                    EnqueueNextModuleGeneration();
+                    GenerateEmptyModule();
                 }
-                catch (Exception e)
-                {
-                    Debug.LogError(e.ToString());
-                    EditorUtility.DisplayDialog("Error!",
-                        "There was an error during Module Generation! Look at the console for more information.",
-                        "Ok");
-                    _generating = false;
-                }
+
+                // Refresh Asset Database
+                AssetDatabase.Refresh();
+
+                // Start Module Generation
+                _currentSourceIndex = -1;
+
+                EnqueueNextModuleGeneration();
             }
 
             GUILayout.FlexibleSpace();
